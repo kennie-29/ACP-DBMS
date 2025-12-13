@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Pending Requests</h2>
+    <table class="table table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Project Title</th>
+                <th>Requester</th>
+                <th>Amount</th>
+                <th>Site</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in requests %}
+            <tr>
+                <td>
+                    <strong>{{ req.project_title }}</strong><br>
+                    <small class="text-muted">{{ req.submission_date }}</small>
+                </td>
+                <td>{{ req.requester.name }}</td>
+                <td>₱{{ "{:,.2f}".format(req.fund_amount) }}</td>
+                <td>{{ req.project_site }}</td>
+                <td>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#reviewModal{{ req.request_id }}">
+                        Review & Vote
+                    </button>
+
+                    <div class="modal fade" id="reviewModal{{ req.request_id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Review Request #{{ req.request_id }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p><strong>Reason:</strong> {{ req.reason }}</p>
+                                    <p><strong>Partners:</strong> {{ req.project_partners }}</p>
+                                    <hr>
+                                    
+                                    <form method="POST" action="{{ url_for('admin.approve_request', request_id=req.request_id) }}" id="approveForm{{ req.request_id }}">
+                                        <div class="mb-3">
+                                            <label class="form-label">Admin Remarks (Required)</label>
+                                            <textarea name="remarks" class="form-control" rows="2" placeholder="e.g., Budget verified, approved for implementation." required></textarea>
+                                        </div>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button type="submit" formaction="{{ url_for('admin.reject_request', request_id=req.request_id) }}" class="btn btn-danger">Reject</button>
+                                            
+                                            <button type="submit" class="btn btn-success">Approve</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center">No pending requests.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

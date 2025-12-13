@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="px-4 py-5 my-5 text-center">
+    <img class="d-block mx-auto mb-4" src="{{ url_for('static', filename='images/logo.png') }}" alt="" width="100" height="auto">
+    
+    <h1 class="display-5 fw-bold text-primary">TransparanSee</h1>
+    <div class="col-lg-6 mx-auto">
+        <p class="lead mb-4">
+            Welcome to the Official Fund Monitoring Portal. We promote transparency and accountability 
+            by tracking project funds, progress updates, and expenses in real-time.
+        </p>
+        
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-4 gap-3">Login to Portal</a>
+                {% else %}
+                {% if current_user.role == 'admin' %}
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-lg px-4">Go to Admin Dashboard</a>
+                {% else %}
+                    <a href="{{ url_for('associate.dashboard') }}" class="btn btn-primary btn-lg px-4">Go to My Dashboard</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="container px-4 py-5" id="featured-3">
+    <h2 class="pb-2 border-bottom">Why TransparanSee?</h2>
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+        <div class="feature col">
+            <h3 class="fs-2">Real-Time Tracking</h3>
+            <p>Monitor the status of funding requests and ongoing projects as they happen.</p>
+        </div>
+        <div class="feature col">
+            <h3 class="fs-2">Transparency</h3>
+            <p>View detailed breakdown of expenses, receipts, and site progress photos.</p>
+        </div>
+        <div class="feature col">
+            <h3 class="fs-2">Accountability</h3>
+            <p>Every action is logged. Every fund released is recorded.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

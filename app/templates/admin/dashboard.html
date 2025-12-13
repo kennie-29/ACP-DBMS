@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Admin Dashboard</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Projects</h5>
+                    <p class="card-text fs-3">{{ total_projects }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Approved</h5>
+                    <p class="card-text fs-3">{{ approved_projects }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Requests</h5>
+                    <p class="card-text fs-3">{{ pending_requests }}</p>
+                    <a href="{{ url_for('admin.requests_list') }}" class="btn btn-sm btn-light text-dark">Review Now</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Funds</h5>
+                    <p class="card-text fs-3">₱{{ "{:,.2f}".format(total_funds) }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Recent Projects</span>
+            <a href="{{ url_for('admin.export_csv') }}" class="btn btn-sm btn-secondary">Export Report</a>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Project Title</th>
+                        <th>Location</th>
+                        <th>Fund Given</th>
+                        <th>Status</th>
+                        <th>Date Approved</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in projects %}
+                    <tr>
+                        <td>{{ project.request.project_title }}</td>
+                        <td>{{ project.request.project_site }}</td>
+                        <td>₱{{ "{:,.2f}".format(project.given_fund) }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if project.current_status == 'Ongoing' else 'secondary' }}">
+                                {{ project.current_status }}
+                            </span>
+                        </td>
+                        <td>{{ project.approval_date }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">No active projects found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

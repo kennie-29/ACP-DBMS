@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div
+    style="text-align: center; margin-bottom: 2rem; min-height: 85vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    <h1 style="color: white; font-size: 4rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.6); margin-bottom: 1rem;">Government
+        Fund Monitoring
+    </h1>
+    <p style="color: #f1f5f9; font-size: 1.5rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Real-time tracking of public
+        resource allocation and utilization.</p>
+    <div style="margin-top: 3rem; opacity: 0.8;">
+        <span style="font-size: 1.5rem; color: white;">▼</span>
+    </div>
+</div>
+
+<div class="glass-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3>Approved Projects</h3>
+        <span class="status-badge status-approved">Live Data</span>
+    </div>
+
+    {% if projects %}
+    <div style="overflow-x: auto;">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Project Title & Location</th>
+                    <th>Fund Allocated</th>
+                    <th>Approval Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">{{ project.request.proj_title }}</div>
+                        <div style="font-size: 0.875rem; color: var(--text-muted);">{{ project.request.project_site }}
+                        </div>
+                    </td>
+                    <td style="font-family: monospace; font-size: 1rem;">₱ {{ "{:,.2f}".format(project.given_fund) }}
+                    </td>
+                    <td>{{ project.approval_date.strftime('%b %d, %Y') }}</td>
+                    <td>
+                        <span class="status-badge status-approved">{{ project.current_status }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem;">
+        <p style="color: var(--text-muted);">No public records available at this moment.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

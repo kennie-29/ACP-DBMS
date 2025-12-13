@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-card">
+    <div style="margin-bottom: 2rem;">
+        <h2>Barangay Announcements</h2>
+        <p style="color: var(--text-muted);">Stay updated with the latest news and schedules.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Announcement 1 -->
+        <div
+            style="padding: 1.5rem; background: rgba(255,255,255,0.5); border-radius: 1rem; border-left: 4px solid var(--primary-color);">
+            <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">December 15, 2025</div>
+            <h3 style="margin-bottom: 0.5rem;">General General Assembly</h3>
+            <p>All residents are invited to the Q4 General Assembly at the Barangay Hall. Fund utilization reports will
+                be presented.</p>
+        </div>
+
+        <!-- Announcement 2 -->
+        <div
+            style="padding: 1.5rem; background: rgba(255,255,255,0.5); border-radius: 1rem; border-left: 4px solid var(--success-color);">
+            <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">December 20, 2025</div>
+            <h3 style="margin-bottom: 0.5rem;">Medical Mission</h3>
+            <p>Free checkups and medicine distribution at the Multi-Purpose Hall starting 8:00 AM.</p>
+        </div>
+
+        <!-- Announcement 3 -->
+        <div
+            style="padding: 1.5rem; background: rgba(255,255,255,0.5); border-radius: 1rem; border-left: 4px solid var(--accent-color);">
+            <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">January 05, 2026</div>
+            <h3 style="margin-bottom: 0.5rem;">Scholarship Application Open</h3>
+            <p>Applications for the Barangay Educational Assistance Program are now open. Submit requirements to the
+                Secretary.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

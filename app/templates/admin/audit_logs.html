@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>System Audit Logs</h2>
+    <p class="text-muted">A chronological record of all security and administrative actions.</p>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Time</th>
+                            <th>Actor (User)</th>
+                            <th>Action</th>
+                            <th>Target</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            <td>
+                                <span class="fw-bold">{{ log.actor.username }}</span><br>
+                                <small class="text-muted">{{ log.actor.role }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ log.action_type }}</span>
+                            </td>
+                            <td>{{ log.target_change or 'N/A' }}</td>
+                            <td>{{ log.details }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No logs found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
