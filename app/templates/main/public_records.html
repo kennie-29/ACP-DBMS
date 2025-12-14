@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-primary">Public Records</h1>
+        <p class="lead text-muted">Transparency in our people and our progress.</p>
+    </div>
+
+    <ul class="nav nav-pills mb-4 justify-content-center" id="recordsTab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="members-tab" data-bs-toggle="pill" data-bs-target="#members" type="button">
+                👥 Registered Officials & Staff
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="projects-tab" data-bs-toggle="pill" data-bs-target="#projects" type="button">
+                🏗️ Current Projects
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        
+        <div class="tab-pane fade show active" id="members">
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for member in members %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0 text-center position-relative" 
+                         style="{{ 'opacity: 0.7; background-color: #f8f9fa;' if not member.is_active }}">
+                        
+                        {% if not member.is_active %}
+                        <div class="position-absolute top-0 start-0 m-2">
+                            <span class="badge bg-danger">REMOVED</span>
+                        </div>
+                        {% endif %}
+
+                       {% if current_user.role == 'super_admin' and member.is_active %}
+                        <div class="position-absolute top-0 end-0 p-2">
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#deleteModal{{ member.user_id }}" 
+                                    title="Deactivate User">
+                                ✕
+                            </button>
+                        </div>
+
+                        <div class="modal fade text-start" id="deleteModal{{ member.user_id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title">Confirm Removal</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form action="{{ url_for('admin.delete_user', user_id=member.user_id) }}" method="POST">
+                                        <div class="modal-body text-dark">
+                                            <p>Are you sure you want to deactivate <strong>{{ member.name }}</strong>?</p>
+                                            <p class="small text-muted">This action will prevent them from logging in, but their records will be preserved.</p>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Reason for Removal (Required):</label>
+                                                <textarea name="reason" class="form-control" rows="3" required placeholder="e.g., End of term, Resigned, etc."></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-danger">Confirm Deactivation</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="card-body d-flex flex-column align-items-center">
+                            
+                            {% set filename = member.pic_path if member.pic_path else 'default.png' %}
+                            <img src="{{ url_for('static', filename='profile_pics/' ~ filename) }}" 
+                                 onerror="this.src='{{ url_for('static', filename='profile_pics/default.png') }}'"
+                                 alt="{{ member.name }}" 
+                                 class="rounded-circle mb-3 shadow-sm"
+                                 style="width: 120px; height: 120px; object-fit: cover; border: 3px solid var(--primary-color); {{ 'filter: grayscale(100%);' if not member.is_active }}">
+                            
+                            <h5 class="card-title fw-bold mb-0">{{ member.name }}</h5>
+                            
+                            <span class="badge bg-{{ 'primary' if member.role == 'admin' else 'secondary' }} mb-2">
+                                {{ 'Barangay Official' if member.role == 'admin' else 'Researcher/Staff' }}
+                            </span>
+                            
+                            <p class="text-dark fw-bold mb-1">{{ member.occupation }}</p>
+                            
+                            {% if member.relation_to_admin %}
+                            <p class="text-muted small fst-italic mb-2">Relation: {{ member.relation_to_admin }}</p>
+                            {% endif %}
+                            
+                            <div class="mt-auto pt-3 border-top w-100 {{ 'bg-light' if member.is_active }}">
+                                <small class="text-muted">
+                                    📍 <strong>Address:</strong><br> 
+                                    {{ member.address }}
+                                </small>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12 text-center text-muted">No registered members found.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="projects">
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                {% for project in projects %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <span class="badge bg-success">{{ project.current_status }}</span>
+                            <small class="text-muted">{{ project.approval_date }}</small>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">{{ project.request.project_title }}</h5>
+                            <p class="card-text text-muted small">{{ project.request.reason|truncate(100) }}</p>
+                            
+                            <ul class="list-group list-group-flush mb-3">
+                                <li class="list-group-item d-flex justify-content-between px-0">
+                                    <span>Fund Allocation:</span>
+                                    <span class="fw-bold text-success">₱{{ "{:,.2f}".format(project.given_fund) }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between px-0">
+                                    <span>Location:</span>
+                                    <span>{{ project.request.project_site }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12 text-center text-muted">No active projects to display.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

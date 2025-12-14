@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-primary">Transparency Logs</h1>
+        <p class="lead text-muted">Public record of system actions, fund allocations, and administrative updates.</p>
+    </div>
+
+    <ul class="nav nav-pills mb-4 justify-content-center" id="logTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="funds-tab" data-bs-toggle="pill" data-bs-target="#funds" type="button">
+                💰 Fund Requests & Processing
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="staff-tab" data-bs-toggle="pill" data-bs-target="#staff" type="button">
+                👥 Admin & Staff Updates
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="logTabsContent">
+        
+        <div class="tab-pane fade show active" id="funds" role="tabpanel">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">Project Funding & Approval History</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                    <th>Performed By</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in fund_logs %}
+                                <tr>
+                                    <td class="text-nowrap">{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        {% if 'Approve' in log.action_type %}
+                                            <span class="badge bg-success">{{ log.action_type }}</span>
+                                        {% elif 'Reject' in log.action_type %}
+                                            <span class="badge bg-danger">{{ log.action_type }}</span>
+                                        {% else %}
+                                            <span class="badge bg-info text-dark">{{ log.action_type }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold">{{ log.actor.name }}</span><br>
+                                        <small class="text-muted">{{ log.actor.occupation }}</small>
+                                    </td>
+                                    <td>
+                                        <strong>{{ log.target_change }}</strong><br>
+                                        <span class="text-muted small">{{ log.details }}</span>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="4" class="text-center text-muted">No funding records found yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="staff" role="tabpanel">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">Official Registry Updates</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                    <th>Admin In-Charge</th>
+                                    <th>Details (Who & Why)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in staff_logs %}
+                                <tr>
+                                    <td class="text-nowrap">{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    
+                                    <td>
+                                        {% if 'Deactivate' in log.action_type or 'Delete' in log.action_type %}
+                                            <span class="badge bg-danger">{{ log.action_type }}</span>
+                                        {% elif 'Create' in log.action_type or 'Register' in log.action_type %}
+                                            <span class="badge bg-success">{{ log.action_type }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ log.action_type }}</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {{ log.actor.name }}<br>
+                                        <small class="text-muted">({{ log.actor.role }})</small>
+                                    </td>
+                                    
+                                    <td>
+                                        {% if log.target_change %}
+                                            <div class="fw-bold">{{ log.target_change }}</div>
+                                        {% endif %}
+                                        <span class="text-muted small">{{ log.details }}</span>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="4" class="text-center text-muted">No staff updates recorded.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

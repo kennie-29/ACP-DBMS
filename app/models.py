@@ -11,6 +11,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(50), nullable=False)
     role = db.Column(db.String(20), nullable=False)  # 'head', 'admin', 'associate'
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     
     # Merged Member Fields
     name = db.Column(db.String(50), nullable=False)

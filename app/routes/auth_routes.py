@@ -7,9 +7,22 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    # 1. If user is ALREADY logged in
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        # FIX A: Check 'current_user' (not 'user')
+        if not current_user.is_active:
+            # FIX B: If deactivated, force logout immediately. Do NOT send to dashboard.
+            logout_user()
+            flash('This account has been deactivated. Contact the Captain.', 'danger')
+            return redirect(url_for('auth.login'))
+            
+        # If active, redirect to correct dashboard
+        if current_user.role in ['admin', 'super_admin']:
+            return redirect(url_for('admin.dashboard'))
+        else:
+            return redirect(url_for('associate.dashboard'))
 
+    # 2. Handle Login Form Submission
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -17,65 +30,23 @@ def login():
         user = User.query.filter_by(username=username).first()
         
         if user and user.check_password(password):
+            # FIX C: Check status BEFORE logging them in
+            if not user.is_active:
+                flash('This account has been deactivated. Contact the Captain.', 'danger')
+                return redirect(url_for('auth.login'))
+
+            # Only login if active
             login_user(user)
             flash('Logged in successfully!', 'success')
             
-            # Smart Redirect based on Role
-            if user.role == 'admin':
-                return redirect(url_for('admin.dashboard')) # You'll need an admin dashboard route
+            if user.role in ['admin', 'super_admin']:
+                return redirect(url_for('admin.dashboard'))
             else:
-                return redirect(url_for('main.index'))
-                
+                return redirect(url_for('associate.dashboard'))
         else:
             flash('Invalid username or password.', 'danger')
             
     return render_template('auth/login.html')
-
-@auth_bp.route('/register', methods=['GET', 'POST'])
-def register():
-    # Only allow existing users to register if you want an invite-only system, 
-    # OR allow public registration. For now, let's allow public for testing.
-    if request.method == 'POST':
-        # Get form data
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        role = request.form.get('role') # 'associate' or 'head' (Admins usually manually added)
-        
-        # New Profile Fields
-        name = request.form.get('name')
-        occupation = request.form.get('occupation')
-        address = request.form.get('address')
-        
-        # Basic validation
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists.', 'warning')
-            return redirect(url_for('auth.register'))
-            
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered.', 'warning')
-            return redirect(url_for('auth.register'))
-
-        # Create new user
-        new_user = User(
-            username=username,
-            email=email,
-            role=role if role else 'associate', # Default to associate
-            name=name,
-            occupation=occupation,
-            address=address,
-            # Placeholder for pic_path until you handle file uploads
-            pic_path='default.jpg' 
-        )
-        new_user.set_password(password)
-        
-        db.session.add(new_user)
-        db.session.commit()
-        
-        flash('Registration successful! Please login.', 'success')
-        return redirect(url_for('auth.login'))
-        
-    return render_template('auth/register.html')
 
 @auth_bp.route('/logout')
 @login_required
