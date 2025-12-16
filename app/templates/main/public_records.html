@@ -4,18 +4,23 @@
 <div class="container mt-5">
     <div class="text-center mb-5">
         <h1 class="display-5 fw-bold text-primary">Public Records</h1>
-        <p class="lead text-muted">Transparency in our people and our progress.</p>
+        <p class="lead text-muted">Transparency in our people, our projects, and our decisions.</p>
     </div>
 
     <ul class="nav nav-pills mb-4 justify-content-center" id="recordsTab" role="tablist">
         <li class="nav-item">
             <button class="nav-link active" id="members-tab" data-bs-toggle="pill" data-bs-target="#members" type="button">
-                👥 Registered Officials & Staff
+                👥 Registered Officials
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link" id="projects-tab" data-bs-toggle="pill" data-bs-target="#projects" type="button">
-                🏗️ Current Projects
+                🏗️ Active Projects
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="requests-tab" data-bs-toggle="pill" data-bs-target="#requests" type="button">
+                📜 Fund Requests History
             </button>
         </li>
     </ul>
@@ -35,70 +40,20 @@
                         </div>
                         {% endif %}
 
-                       {% if current_user.role == 'super_admin' and member.is_active %}
-                        <div class="position-absolute top-0 end-0 p-2">
-                            <button type="button" class="btn btn-sm btn-outline-danger" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#deleteModal{{ member.user_id }}" 
-                                    title="Deactivate User">
-                                ✕
-                            </button>
-                        </div>
-
-                        <div class="modal fade text-start" id="deleteModal{{ member.user_id }}" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-danger text-white">
-                                        <h5 class="modal-title">Confirm Removal</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <form action="{{ url_for('admin.delete_user', user_id=member.user_id) }}" method="POST">
-                                        <div class="modal-body text-dark">
-                                            <p>Are you sure you want to deactivate <strong>{{ member.name }}</strong>?</p>
-                                            <p class="small text-muted">This action will prevent them from logging in, but their records will be preserved.</p>
-                                            
-                                            <div class="mb-3">
-                                                <label class="form-label fw-bold">Reason for Removal (Required):</label>
-                                                <textarea name="reason" class="form-control" rows="3" required placeholder="e.g., End of term, Resigned, etc."></textarea>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            <button type="submit" class="btn btn-danger">Confirm Deactivation</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
                         <div class="card-body d-flex flex-column align-items-center">
-                            
                             {% set filename = member.pic_path if member.pic_path else 'default.png' %}
                             <img src="{{ url_for('static', filename='profile_pics/' ~ filename) }}" 
-                                 onerror="this.src='{{ url_for('static', filename='profile_pics/default.png') }}'"
-                                 alt="{{ member.name }}" 
                                  class="rounded-circle mb-3 shadow-sm"
                                  style="width: 120px; height: 120px; object-fit: cover; border: 3px solid var(--primary-color); {{ 'filter: grayscale(100%);' if not member.is_active }}">
                             
                             <h5 class="card-title fw-bold mb-0">{{ member.name }}</h5>
-                            
                             <span class="badge bg-{{ 'primary' if member.role == 'admin' else 'secondary' }} mb-2">
                                 {{ 'Barangay Official' if member.role == 'admin' else 'Researcher/Staff' }}
                             </span>
-                            
                             <p class="text-dark fw-bold mb-1">{{ member.occupation }}</p>
-                            
-                            {% if member.relation_to_admin %}
-                            <p class="text-muted small fst-italic mb-2">Relation: {{ member.relation_to_admin }}</p>
-                            {% endif %}
-                            
                             <div class="mt-auto pt-3 border-top w-100 {{ 'bg-light' if member.is_active }}">
-                                <small class="text-muted">
-                                    📍 <strong>Address:</strong><br> 
-                                    {{ member.address }}
-                                </small>
+                                <small class="text-muted">📍 {{ member.address }}</small>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -108,14 +63,16 @@
             </div>
         </div>
 
-        <div class="tab-pane fade" id="projects">
+       <div class="tab-pane fade" id="projects">
             <div class="row row-cols-1 row-cols-md-2 g-4">
                 {% for project in projects %}
                 <div class="col">
                     <div class="card h-100 shadow-sm border-0">
                         <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                            <span class="badge bg-success">{{ project.current_status }}</span>
-                            <small class="text-muted">{{ project.approval_date }}</small>
+                            <span class="badge bg-{{ 'success' if project.current_status == 'Ongoing' else 'secondary' }}">
+                                {{ project.current_status }}
+                            </span>
+                            <small class="text-muted">ID: #{{ project.project_id }}</small>
                         </div>
                         <div class="card-body">
                             <h5 class="card-title fw-bold">{{ project.request.project_title }}</h5>
@@ -130,7 +87,28 @@
                                     <span>Location:</span>
                                     <span>{{ project.request.project_site }}</span>
                                 </li>
+                                
+                                <li class="list-group-item d-flex justify-content-between px-0">
+                                    <span>Date Started:</span>
+                                    <span class="fw-bold">
+                                        {{ project.approval_date.strftime('%b %d, %Y') if project.approval_date else 'N/A' }}
+                                    </span>
+                                </li>
+
+                                <li class="list-group-item d-flex justify-content-between px-0">
+                                    <span>Target Completion:</span>
+                                    <span class="fw-bold text-muted">
+                                        {{ project.request.end_date.strftime('%b %d, %Y') if project.request.end_date else 'No Deadline' }}
+                                    </span>
+                                </li>
                             </ul>
+
+                            <div class="d-grid mt-3">
+                                <a href="{{ url_for('main.project_history', project_id=project.project_id) }}#projects" 
+                                   class="btn btn-outline-primary btn-sm fw-bold">
+                                    View Full History & Photos ➜
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -139,7 +117,94 @@
                 {% endfor %}
             </div>
         </div>
+        <div class="tab-pane fade" id="requests">
+            <div class="row row-cols-1 g-4">
+                {% for req in all_requests %}
+                <div class="col">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header d-flex justify-content-between align-items-center
+                            {% if req.status == 'Approved' %} bg-success text-white
+                            {% elif req.status == 'Rejected' %} bg-danger text-white
+                            {% else %} bg-warning text-dark {% endif %}">
+                            
+                            <span class="fw-bold">
+                                {% if req.status == 'Approved' %} APPROVED
+                                {% elif req.status == 'Rejected' %} REJECTED
+                                {% else %} ⏳ PENDING {% endif %}
+                            </span>
+                            <small>Submitted: {{ req.submission_date.strftime('%b %d, %Y') }}</small>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-7 border-end">
+                                    <h4 class="fw-bold">{{ req.project_title }}</h4>
+                                    <p class="text-muted mb-2">Requested by: <strong>{{ req.requester.name }}</strong></p>
+                                    
+                                    <div class="mb-3">
+                                        <span class="badge bg-secondary p-2">Amount: ₱{{ "{:,.2f}".format(req.fund_amount) }}</span>
+                                        <span class="badge bg-light text-dark border p-2">Site: {{ req.project_site }}</span>
+                                    </div>
+                                    
+                                    <p class="card-text"><strong>Objective/Reason:</strong><br> {{ req.reason }}</p>
+                                </div>
+
+                                <div class="col-md-5">
+                                    <h6 class="text-muted fw-bold border-bottom pb-2">Administrative Votes</h6>
+                                    
+                                    {% if req.votes %}
+                                        <ul class="list-group list-group-flush">
+                                            {% for vote in req.votes %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                <div>
+                                                    <strong>{{ vote.admin.name }}</strong>
+                                                    {% if vote.remarks %}
+                                                        <br><small class="text-muted fst-italic">"{{ vote.remarks }}"</small>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                {% if vote.vote == 'Approve' %}
+                                                    <span class="badge bg-success rounded-pill">Approved</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger rounded-pill">Rejected</span>
+                                                {% endif %}
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p class="text-muted small fst-italic mt-2">No votes recorded yet.</p>
+                                    {% endif %}
+
+                                    {% if req.status != 'Pending' %}
+                                        <div class="alert alert-light border mt-3 mb-0 p-2 text-center small">
+                                            Final decision made by the captain.
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12 text-center text-muted">No requests found in the system.</div>
+                {% endfor %}
+            </div>
+        </div>
 
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.location.hash) {
+            var triggerEl = document.querySelector(window.location.hash + '-tab');
+            if (triggerEl) {
+                var tab = new bootstrap.Tab(triggerEl);
+                tab.show();
+            }
+        }
+    });
+</script>
 {% endblock %}

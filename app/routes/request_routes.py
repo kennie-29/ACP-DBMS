@@ -1,69 +1,81 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from datetime import datetime
-from ..models import Request, SystemLog
+from ..models import Request, SystemLog  # <--- Ensure SystemLog is imported
 from ..database import db
 
 request_bp = Blueprint('request', __name__)
 
+# In app/routes/request_routes.py
+
 @request_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create_request():
+    # Security Check
+    if current_user.role != 'associate':
+        flash('Only staff associates can submit funding requests.', 'danger')
+        return redirect(url_for('main.index'))
+
     if request.method == 'POST':
-        # 1. Get Form Data
-        title = request.form.get('project_title')
-        reason = request.form.get('reason')
-        amount = request.form.get('fund_amount')
-        site = request.form.get('project_site')
-        partners = request.form.get('project_partners')
-        start_date_str = request.form.get('start_date')
-        end_date_str = request.form.get('end_date')
+        # 1. GET DATA using the names from YOUR HTML
+        title = request.form.get('project_title')       # Matches <input name="project_title">
+        site = request.form.get('project_site')         # Matches <input name="project_site">
+        partners = request.form.get('project_partners') # Matches <input name="project_partners">
+        reason = request.form.get('reason')             # Matches <textarea name="reason">
+        amount = request.form.get('fund_amount')        # Matches <input name="fund_amount">
+        start_date = request.form.get('start_date')     # Matches <input name="start_date">
+        end_date_str = request.form.get('end_date')     # Matches <input name="end_date">
 
-        # 2. Convert Dates
+        # 2. VALIDATION
+        if not all([title, site, reason, amount]):
+            flash('Please fill in all required fields.', 'warning')
+            return render_template('request/create_request.html')
+
+        # 3. COMBINE EXTRA FIELDS (Optional)
+        # Since your DB might not have 'partners' or 'start_date' columns yet, 
+        # we can append them to the 'reason' so the info isn't lost.
+        full_reason = f"{reason}\n\n[Partners: {partners}] [Proposed Start: {start_date}]"
+
         try:
-            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            amount_float = float(amount)
         except ValueError:
-            flash('Invalid date format.', 'danger')
-            return redirect(url_for('request.create_request'))
+            flash('Invalid amount.', 'danger')
+            return render_template('request/create_request.html')
 
-        # 3. Create Request Object
-        new_req = Request(
+        # Parse End Date
+        end_date_obj = None
+        if end_date_str:
+            try:
+                end_date_obj = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
+
+        # 4. SAVE TO DATABASE
+        new_request = Request(
             requested_by_user_id=current_user.user_id,
             project_title=title,
-            reason=reason,
-            fund_amount=float(amount),
             project_site=site,
-            project_partners=partners,
-            start_date=start_date,
-            end_date=end_date,
-            status='Pending'
+            fund_amount=amount_float,
+            reason=full_reason, # We save the combined info here
+            end_date=end_date_obj,
+            status='Pending',
+            submission_date=datetime.utcnow()
         )
-
-        db.session.add(new_req)
+        
+        db.session.add(new_request)
         db.session.commit()
 
-        # 4. Log Action
+        # 5. LOGGING
         log = SystemLog(
             actor_id=current_user.user_id,
-            action_type='Create Request',
-            target_change=f'Request #{new_req.request_id}',
-            details=f'Requested ${amount} for {title}'
+            action_type='Create Request', 
+            target_change=f'Request: {title}',
+            details=f"Amount: ₱{amount_float:,.2f} | Site: {site}"
         )
         db.session.add(log)
         db.session.commit()
 
-        flash('Funding request submitted successfully!', 'success')
-        
-        # Redirect based on role
-        if current_user.role == 'associate':
-            return redirect(url_for('associate.dashboard'))
-        return redirect(url_for('main.index'))
+        flash('Funding proposal submitted successfully!', 'success')
+        return redirect(url_for('associate.dashboard'))
 
     return render_template('requests/create_request.html')
-
-@request_bp.route('/<int:request_id>')
-@login_required
-def view_request(request_id):
-    req = Request.query.get_or_404(request_id)
-    return render_template('requests/view_request.html', req=req)

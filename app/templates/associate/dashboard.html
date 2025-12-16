@@ -25,24 +25,59 @@
                         <tr>
                             <th>Project Title</th>
                             <th>Status</th>
-                            <th>Funds</th>
+                            <th>Fund Status</th>
+                            <th>Deadline</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for p in projects %}
-                        <tr>
-                            <td>{{ p.request.project_title }}</td>
-                            <td><span class="badge bg-success">{{ p.current_status }}</span></td>
-                            <td>₱{{ "{:,.2f}".format(p.given_fund) }}</td>
+                        <tr class="{{ 'table-danger' if p.is_overdue else '' }}">
                             <td>
-                                <a href="{{ url_for('associate.post_update', project_id=p.project_id) }}" class="btn btn-sm btn-outline-primary">
-                                    Post Update
-                                </a>
+                                <strong>{{ p.request.project_title }}</strong>
+                                {% if p.is_urgent %}
+                                    <br><span class="badge bg-warning text-dark">⚠️ Ends in {{ p.days_left }} days!</span>
+                                {% endif %}
+                                {% if p.is_overdue and p.current_status == 'Ongoing' %}
+                                    <br><span class="badge bg-danger">OVERDUE by {{ p.days_left|abs }} days</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td>
+                                <span class="badge bg-{{ 'success' if p.current_status == 'Completed' else 'primary' }}">
+                                    {{ p.current_status }}
+                                </span>
+                            </td>
+                            
+                            <td>
+                                <div style="font-size: 0.9rem;">
+                                    <span class="text-muted">Given:</span> ₱{{ "{:,.2f}".format(p.given_fund) }}<br>
+                                    <span class="text-danger">Spent: (₱{{ "{:,.2f}".format(p.total_expenses) }})</span><br>
+                                    <span class="fw-bold {{ 'text-danger' if p.remaining_fund < 0 else 'text-success' }}">
+                                        Rem: ₱{{ "{:,.2f}".format(p.remaining_fund) }}
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td>
+                                {{ p.request.end_date }}
+                            </td>
+
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('associate.post_update', project_id=p.project_id, type='site') }}" 
+                                       class="btn btn-sm btn-outline-primary" title="Site Update">
+                                        📷
+                                    </a>
+                                    <a href="{{ url_for('associate.post_update', project_id=p.project_id, type='expense') }}" 
+                                       class="btn btn-sm btn-outline-success" title="Report Expense">
+                                        💰
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="4" class="text-center">No active projects yet.</td></tr>
+                        <tr><td colspan="5" class="text-center">No active projects yet.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -50,7 +85,7 @@
         </div>
 
         <div class="tab-pane fade" id="requests">
-            <table class="table">
+            <table class="table align-middle">
                 <thead>
                     <tr>
                         <th>Title</th>

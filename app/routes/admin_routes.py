@@ -171,6 +171,22 @@ def cast_vote(request_id):
         remarks=remarks
     )
     db.session.add(new_vote)
+
+    # 3. LOG THE VOTE (New Code)
+    # matches 'Vote Cast' in your main_routes.py filters
+    log_details = f"Voted: {vote_choice}"
+    if remarks:
+        log_details += f" | Remarks: {remarks}"
+
+    log = SystemLog(
+        actor_id=current_user.user_id,
+        action_type='Vote Cast', 
+        target_change=f'Request: {req.project_title}',
+        details=log_details
+    )
+    db.session.add(log)
+
+    # Commit both the Vote and the Log at the same time
     db.session.commit()
     
     flash('Vote cast successfully!', 'success')
@@ -186,6 +202,10 @@ def finalize_approval(request_id):
 
     req = Request.query.get_or_404(request_id)
     action = request.form.get('action') # 'Approve' or 'Reject'
+    
+    # Initialize log variables
+    log_action_type = ''
+    log_details = ''
 
     if action == 'Approve':
         req.status = 'Approved'
@@ -197,27 +217,33 @@ def finalize_approval(request_id):
             approval_date=datetime.utcnow()
         )
         db.session.add(proj)
-        details = f"Captain Finalized Approval (Funds: {req.fund_amount})"
+        
+        # SET LOG TYPE TO 'Approve Request'
+        log_action_type = 'Approve Request'
+        log_details = f"Approved ₱{req.fund_amount:,.2f} for implementation."
+        
         flash('Request officially APPROVED. Project created.', 'success')
 
     else:
         req.status = 'Rejected'
-        details = "Captain Finalized Rejection"
+        
+        # SET LOG TYPE TO 'Reject Request'
+        log_action_type = 'Reject Request'
+        log_details = f"Request rejected by {current_user.name}."
+        
         flash('Request officially REJECTED.', 'warning')
 
-    # Log it
+    # Log it with the specific Action Type
     log = SystemLog(
         actor_id=current_user.user_id,
-        action_type='Finalize Request',
-        target_change=f'Request #{req.request_id}',
-        details=details
+        action_type=log_action_type, # Now saves as 'Approve Request' or 'Reject Request'
+        target_change=f'Request: {req.project_title}',
+        details=log_details
     )
     db.session.add(log)
     db.session.commit()
 
     return redirect(url_for('admin.requests_list'))
-
-# --- MISSING FUNCTIONS ADDED BELOW ---
 
 @admin_bp.route('/export/csv')
 @login_required
@@ -305,3 +331,78 @@ def delete_user(user_id):
     
     flash(f'User {user_to_delete.name} has been deactivated.', 'success')
     return redirect(url_for('main.public_records'))
+
+# In app/routes/admin_routes.py
+
+@admin_bp.route('/register-associate', methods=['GET', 'POST'])
+@login_required
+def register_associate():
+    # 1. PERMISSION CHECK: Allow 'admin' (Officials) AND 'super_admin' (Captain)
+    if current_user.role not in ['admin', 'super_admin']:
+        flash('You do not have permission to register associates.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    if request.method == 'POST':
+        # 2. Get Data
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        name = request.form.get('name')
+        occupation = request.form.get('occupation')
+        address = request.form.get('address')
+        file = request.files.get('profile_pic')
+        
+        # 3. Validation
+        if not all([username, email, password, name, occupation]):
+            flash('Please fill in all required fields.', 'danger')
+            return render_template('admin/register_associate.html')
+
+        # Check Duplicates
+        existing = User.query.filter((User.username == username) | (User.email == email)).first()
+        if existing:
+            flash('Username or Email already exists.', 'danger')
+            return render_template('admin/register_associate.html')
+
+        # 4. Handle Profile Pic
+        pic_filename = 'default.png'
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            import time
+            unique_filename = f"{int(time.time())}_{filename}"
+            
+            # Ensure folder exists
+            upload_path = os.path.join(current_app.root_path, 'static', 'profile_pics')
+            os.makedirs(upload_path, exist_ok=True)
+            
+            file.save(os.path.join(upload_path, unique_filename))
+            pic_filename = unique_filename
+
+        # 5. CREATE USER (Hardcoded role='associate')
+        new_user = User(
+            username=username, 
+            email=email, 
+            role='associate',  # <--- LOCKED ROLE
+            name=name, 
+            occupation=occupation, 
+            # Link this associate to the Admin who created them
+            relation_to_admin=f"Staff of {current_user.name}", 
+            address=address, 
+            pic_path=pic_filename
+        )
+        new_user.set_password(password)
+        db.session.add(new_user)
+        
+        # 6. Log it
+        log = SystemLog(
+            actor_id=current_user.user_id,
+            action_type='Register Staff',
+            target_change=f'Staff: {name}',
+            details=f"Registered by {current_user.name} ({current_user.role})"
+        )
+        db.session.add(log)
+        db.session.commit()
+        
+        flash(f'Successfully registered staff member: {name}', 'success')
+        return redirect(url_for('admin.dashboard'))
+
+    return render_template('admin/register_associate.html')

@@ -30,57 +30,54 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
+                <ul class="navbar-nav ms-auto">
                     
-                    <li class="nav-item"><a href="{{ url_for('main.index') }}" class="nav-link">Home</a></li>
-                    <li class="nav-item"><a href="{{ url_for('main.public_logs') }}" class="nav-link fw-bold">Transparency Logs</a></li>
-                    <li class="nav-item"><a href="{{ url_for('main.public_records') }}" class="nav-link fw-bold">Records</a></li>
-                    <li class="nav-item"><a href="{{ url_for('main.about') }}" class="nav-link">About Us</a></li>
+                    {% if not current_user.is_authenticated %}
+                        <li class="nav-item"><a href="{{ url_for('main.index') }}" class="nav-link">Home</a></li>
+                        <li class="nav-item"><a href="{{ url_for('main.public_logs') }}" class="nav-link">Transparency Logs</a></li>
+                    {% endif %}
                     
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.public_records') }}" class="nav-link fw-bold">Records</a>
+                    </li>
+
                     {% if current_user.is_authenticated %}
                         
                         {% if current_user.role in ['admin', 'super_admin'] %}
-                            <li class="nav-item">
-                                <a href="{{ url_for('admin.dashboard') }}" class="nav-link fw-bold text-primary">
-                                    {% if current_user.role == 'super_admin' %}
-                                        Captain's Dashboard
-                                    {% else %}
-                                        Admin Dashboard
-                                    {% endif %}
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ url_for('admin.requests_list') }}" class="nav-link">
-                                    Votes & Requests
-                                    </a>
-                            </li>
-                            
-                            {% if current_user.role == 'super_admin' %}
-                            <li class="nav-item">
-                                <a href="{{ url_for('admin.register_official') }}" class="nav-link">Add Official</a>
-                            </li>
-                            {% endif %}
-                        
-                        {% elif current_user.role == 'associate' %}
-                            <li class="nav-item">
-                                <a href="{{ url_for('associate.dashboard') }}" class="nav-link fw-bold text-primary">Official Dashboard</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ url_for('request.create_request') }}" class="btn btn-primary btn-sm ms-2 text-white">+ New Request</a>
-                            </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin.requests_list') }}" class="nav-link">Requests</a>
+                        </li>
                         {% endif %}
 
-                        <li class="nav-item ms-3 d-flex align-items-center gap-2">
-                            <span class="text-muted small">
-                                {{ current_user.name or current_user.username }}
-                            </span>
-                            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
+                        <li class="nav-item">
+                            {% if current_user.role in ['admin', 'super_admin'] %}
+                                <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a>
+                            {% else %}
+                                <a href="{{ url_for('associate.dashboard') }}" class="nav-link">Dashboard</a>
+                            {% endif %}
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="{{ url_for('static', filename='profile_pics/' + (current_user.pic_path if current_user.pic_path else 'default.png')) }}" 
+                                     class="rounded-circle me-1" width="25" height="25" style="object-fit: cover;">
+                                {{ current_user.name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                <li>
+                                    <div class="dropdown-header">
+                                        Signed in as <br>
+                                        <strong>{{ current_user.role.replace('_', ' ').title() }}</strong>
+                                    </div>
+                                </li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.profile_settings') }}">Profile Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                            </ul>
                         </li>
 
                     {% else %}
-                        <li class="nav-item ms-2">
-                            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-sm">Login</a>
-                        </li>
+                        <li class="nav-item"><a href="{{ url_for('auth.login') }}" class="nav-link btn btn-outline-primary ms-2">Login</a></li>
                     {% endif %}
                 </ul>
             </div>

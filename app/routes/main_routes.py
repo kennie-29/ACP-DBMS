@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for
 from flask_login import current_user
-from ..models import SystemLog, User, Project, Request # <--- Added Project, Request
+from ..models import SystemLog, User, Project, Request, ProjectUpdate # <--- Added Project, Request
 from ..database import db
 
 main_bp = Blueprint('main', __name__)
@@ -18,32 +18,52 @@ def index():
 def about():
     return render_template('main/about.html')
 
-# --- NEW ROUTE FOR PUBLIC LOGS ---
 @main_bp.route('/public-logs')
 def public_logs():
-    # Group 1: Admin and Staff Creation/Deletion/Edit
-    # UPDATE: Added 'Deactivate User' so removal logs appear here
+    # 1. Staff Updates (User management)
     user_actions = ['Create User', 'Delete User', 'Deactivate User', 'Update User', 'Register']
-    
     staff_logs = SystemLog.query.filter(SystemLog.action_type.in_(user_actions))\
                                 .order_by(SystemLog.timestamp.desc()).all()
 
-    # Group 2: Fund Requests, Status, Processing
-    fund_actions = ['Create Request', 'Approve Request', 'Reject Request', 'Finalize Request', 'Vote Cast']
-    
+    # 2. Fund & Request Updates (THIS IS THE IMPORTANT PART)
+    # We include all the specific actions we added to the logs
+    fund_actions = ['Create Request', 'Vote Cast', 'Approve Request', 'Reject Request', 'Finalize Request']
     fund_logs = SystemLog.query.filter(SystemLog.action_type.in_(fund_actions))\
                                .order_by(SystemLog.timestamp.desc()).all()
 
-    return render_template('main/public_logs.html', staff_logs=staff_logs, fund_logs=fund_logs)
+    # 3. Project Updates (Site & Expenses)
+    project_logs = SystemLog.query.filter_by(action_type='Project Update')\
+                                  .order_by(SystemLog.timestamp.desc()).all()
+
+    return render_template('main/public_logs.html', 
+                           staff_logs=staff_logs, 
+                           fund_logs=fund_logs, 
+                           project_logs=project_logs)
 
 @main_bp.route('/public-records')
 def public_records():
-    # 1. Fetch Members: Showing Admins and Associates
-    #    We fetch ALL (even deactivated ones) so the "Removed" badge logic works in the HTML
-    members = User.query.filter(User.role.in_(['admin', 'associate'])).order_by(User.role).all()
+    # 1. Fetch Members (Existing logic)
+    members = User.query.filter(User.role != 'super_admin').all()
     
-    # 2. Fetch Projects: Join with Request to get titles/site info
-    #    We show all projects except Cancelled ones
-    projects = Project.query.join(Request).filter(Project.current_status != 'Cancelled').all()
+    # 2. Fetch Projects (Existing logic - usually just Ongoing/Completed)
+    projects = Project.query.join(Request).order_by(Project.approval_date.desc()).all()
+
+    # 3. NEW: Fetch ALL Requests (Pending, Approved, Rejected)
+    # We order by submission date so the newest are first
+    all_requests = Request.query.order_by(Request.submission_date.desc()).all()
+
+    return render_template('main/public_records.html', 
+                           members=members, 
+                           projects=projects,
+                           all_requests=all_requests) # <--- Pass this new list
+
+@main_bp.route('/project/<int:project_id>/history')
+def project_history(project_id):
+    # Fetch project or return 404 if not found
+    project = Project.query.get_or_404(project_id)
     
-    return render_template('main/public_records.html', members=members, projects=projects)
+    # Fetch all updates for this project, sorted by newest first
+    updates = ProjectUpdate.query.filter_by(project_id=project_id)\
+                                 .order_by(ProjectUpdate.date_posted.desc()).all()
+    
+    return render_template('main/project_history.html', project=project, updates=updates)

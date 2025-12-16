@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow mb-5">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">⚙️ Profile Settings</h4>
+                    <span class="badge bg-light text-dark">{{ current_user.role.replace('_', ' ').title() }}</span>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        
+                        <div class="row mb-4 align-items-center">
+                            <div class="col-md-4 text-center">
+                                <img src="{{ url_for('static', filename='profile_pics/' + (current_user.pic_path if current_user.pic_path else 'default.png')) }}" 
+                                     class="rounded-circle img-thumbnail mb-2" 
+                                     style="width: 150px; height: 150px; object-fit: cover;">
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Upload New Picture</label>
+                                <input type="file" name="profile_pic" class="form-control" accept="image/*">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Full Name</label>
+                                <input type="text" name="name" class="form-control" value="{{ current_user.name }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Username</label>
+                                <input type="text" name="username" class="form-control" value="{{ current_user.username }}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Email Address</label>
+                            <input type="email" name="email" class="form-control" value="{{ current_user.email }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Address</label>
+                            <textarea name="address" class="form-control" rows="2" required>{{ current_user.address }}</textarea>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="text-primary mb-3">🔒 Security Settings</h5>
+                        <div class="bg-light p-3 rounded border">
+                            <div class="mb-3">
+                                <label class="form-label">Current Password <span class="text-muted small">(Required to set new password)</span></label>
+                                <input type="password" name="current_password" class="form-control">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">New Password</label>
+                                    <input type="password" name="new_password" class="form-control">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Confirm New Password</label>
+                                    <input type="password" name="confirm_password" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg">Save All Changes</button>
+                            
+                            {% if current_user.role in ['admin', 'super_admin'] %}
+                                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Cancel</a>
+                            {% else %}
+                                <a href="{{ url_for('associate.dashboard') }}" class="btn btn-secondary">Cancel</a>
+                            {% endif %}
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
