@@ -61,8 +61,5 @@ def create_app():
     app.register_blueprint(request_bp) 
     app.register_blueprint(associate_bp, url_prefix='/associate')
 
-    # --- 6. ERROR HANDLERS ---
-    from .errors import register_error_handlers
-    register_error_handlers(app)
 
     return app

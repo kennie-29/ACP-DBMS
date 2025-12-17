@@ -5,95 +5,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TransparanSee | Fund Monitoring</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index') }}">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" 
-                     style="height: 40px; width: auto; margin-right: 10px;">
-                <div style="display: flex; flex-direction: column; line-height: 1;">
-                    <span style="font-size: 1.2rem; font-weight: bold; color: var(--primary-color);">TransparanSee</span>
-                    <span style="font-size: 0.65rem; font-weight: 400; opacity: 0.7; letter-spacing: 0.1em; text-transform: uppercase;">
-                        Official Monitoring Portal
-                    </span>
-                </div>
-            </a>
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    
-                    {% if not current_user.is_authenticated %}
-                        <li class="nav-item"><a href="{{ url_for('main.index') }}" class="nav-link">Home</a></li>
-                        <li class="nav-item"><a href="{{ url_for('main.public_logs') }}" class="nav-link">Transparency Logs</a></li>
-                    {% endif %}
-                    
-                    <li class="nav-item">
-                        <a href="{{ url_for('main.public_records') }}" class="nav-link fw-bold">Records</a>
-                    </li>
-
-                    {% if current_user.is_authenticated %}
-                        
-                        {% if current_user.role in ['admin', 'super_admin'] %}
-                        <li class="nav-item">
-                            <a href="{{ url_for('admin.requests_list') }}" class="nav-link">Requests</a>
-                        </li>
-                        {% endif %}
-
-                        <li class="nav-item">
-                            {% if current_user.role in ['admin', 'super_admin'] %}
-                                <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a>
-                            {% else %}
-                                <a href="{{ url_for('associate.dashboard') }}" class="nav-link">Dashboard</a>
-                            {% endif %}
-                        </li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="{{ url_for('static', filename='profile_pics/' + (current_user.pic_path if current_user.pic_path else 'default.png')) }}" 
-                                     class="rounded-circle me-1" width="25" height="25" style="object-fit: cover;">
-                                {{ current_user.name }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <li>
-                                    <div class="dropdown-header">
-                                        Signed in as <br>
-                                        <strong>{{ current_user.role.replace('_', ' ').title() }}</strong>
-                                    </div>
-                                </li>
-                                <li><a class="dropdown-item" href="{{ url_for('auth.profile_settings') }}">Profile Settings</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">Logout</a></li>
-                            </ul>
-                        </li>
-
-                    {% else %}
-                        <li class="nav-item"><a href="{{ url_for('auth.login') }}" class="nav-link btn btn-outline-primary ms-2">Login</a></li>
-                    {% endif %}
-                </ul>
+    <nav class="navbar">
+        <a href="{{ url_for('main.index') }}" class="brand-logo">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"
+                style="height: 40px; width: auto; margin-right: 10px;">
+            <div style="display: flex; flex-direction: column; line-height: 1;">
+                <span style="font-size: 1.2rem;">TransparanSee</span>
+                <span
+                    style="font-size: 0.65rem; font-weight: 400; opacity: 0.9; letter-spacing: 0.1em; text-transform: uppercase;">Official
+                    Monitoring Portal</span>
             </div>
+        </a>
+        <div class="nav-links">
+            {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('main.index') }}" class="nav-item">Home</a>
+            <a href="{{ url_for('main.public_logs') }}" class="nav-item">Transparency Logs</a>
+            {% endif %}
+
+            <a href="{{ url_for('main.public_records') }}" class="nav-item">Records</a>
+
+            {% if current_user.is_authenticated %}
+
+            {% if current_user.role in ['admin', 'super_admin'] %}
+            <a href="{{ url_for('admin.requests_list') }}" class="nav-item">Requests</a>
+            {% endif %}
+
+            {% if current_user.role in ['admin', 'super_admin'] %}
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-item">Dashboard</a>
+            {% else %}
+            <a href="{{ url_for('associate.dashboard') }}" class="nav-item">Dashboard</a>
+            {% endif %}
+
+            <span class="nav-item">{{ current_user.name }}</span>
+            <a href="{{ url_for('auth.profile_settings') }}" class="nav-item"
+                style="font-size: 0.8rem; margin-right: 10px;">Profile</a>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-primary">Logout</a>
+
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="nav-item">Login</a>
+            {% endif %}
         </div>
     </nav>
 
-    <div class="container mt-4" style="min-height: 80vh;">
+    <div class="container mt-4 fade-in-up" style="min-height: 80vh;">
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
+            role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
@@ -104,6 +76,7 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
 </body>
 
 </html>

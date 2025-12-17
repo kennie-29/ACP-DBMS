@@ -2,53 +2,54 @@
 
 {% block content %}
 <div class="container mt-4">
-    
+
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">Admin Dashboard</h2>
+        <h2 class="mb-0 fw-bold" style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.6);">Admin Dashboard</h2>
         <div>
             {% if current_user.role == 'super_admin' %}
-                <a href="{{ url_for('admin.register_official') }}" class="btn btn-primary">
-                    ➕ Register New Member
-                </a>
+            <a href="{{ url_for('admin.register_official') }}" class="btn btn-light fw-bold shadow-sm">
+                ➕ Register New Member
+            </a>
 
             {% elif current_user.role == 'admin' %}
-                <a href="{{ url_for('admin.register_associate') }}" class="btn btn-primary">
-                    ➕ Register New Associate
-                </a>
+            <a href="{{ url_for('admin.register_associate') }}" class="btn btn-light fw-bold shadow-sm">
+                ➕ Register New Associate
+            </a>
             {% endif %}
-            
+
         </div>
     </div>
-    
+
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card text-white bg-primary mb-3">
+            <div class="card text-white bg-primary mb-3 shadow">
                 <div class="card-body">
                     <h5 class="card-title">Total Projects</h5>
-                    <p class="card-text fs-3">{{ total_projects }}</p>
+                    <p class="card-text fs-3 fw-bold">{{ total_projects }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-success mb-3">
+            <div class="card text-white bg-success mb-3 shadow">
                 <div class="card-body">
                     <h5 class="card-title">Approved</h5>
-                    <p class="card-text fs-3">{{ approved_projects }}</p>
+                    <p class="card-text fs-3 fw-bold">{{ approved_projects }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-warning mb-3">
+            <div class="card text-white bg-warning mb-3 shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Pending Requests</h5>
-                    <p class="card-text fs-3">{{ pending_requests }}</p>
-                    
+                    <h5 class="card-title text-dark">Pending Requests</h5>
+                    <p class="card-text fs-3 text-dark fw-bold">{{ pending_requests }}</p>
+
                     <div class="d-grid gap-2">
-                        <a href="{{ url_for('admin.requests_list') }}" class="btn btn-sm btn-light text-dark fw-bold">
+                        <a href="{{ url_for('admin.requests_list') }}"
+                            class="btn btn-sm btn-light text-dark fw-bold shadow-sm">
                             {% if current_user.role == 'super_admin' %}
-                                Process & Finalize
+                            Process & Finalize
                             {% else %}
-                                View & Vote
+                            View & Vote
                             {% endif %}
                         </a>
                     </div>
@@ -56,52 +57,94 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-info mb-3">
+            <div class="card text-white bg-info mb-3 shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Total Funds</h5>
-                    <p class="card-text fs-3">₱{{ "{:,.2f}".format(total_funds) }}</p>
+                    <div class="glass-card text-center p-4">
+                        <div class="display-4 fw-bold text-success">₱{{ "{:,.0f}".format(total_funds) }}</div>
+                        <div class="text-uppercase small fw-bold text-muted mt-2">Total Funds Released</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span>Recent Projects</span>
-            <a href="{{ url_for('admin.export_csv') }}" class="btn btn-sm btn-secondary">Export Report</a>
-        </div>
-        <div class="card-body">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Project Title</th>
-                        <th>Location</th>
-                        <th>Fund Given</th>
-                        <th>Status</th>
-                        <th>Date Approved</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for project in projects %}
-                    <tr>
-                        <td>{{ project.request.project_title }}</td>
-                        <td>{{ project.request.project_site }}</td>
-                        <td>₱{{ "{:,.2f}".format(project.given_fund) }}</td>
-                        <td>
-                            <span class="badge bg-{{ 'success' if project.current_status == 'Ongoing' else 'secondary' }}">
-                                {{ project.current_status }}
-                            </span>
-                        </td>
-                        <td>{{ project.approval_date.strftime('%Y-%m-%d') if project.approval_date else 'N/A' }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="5" class="text-center">No active projects found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+</div>
+
+<!-- Recent Projects Row -->
+<div class="glass-card text-dark"
+    style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: none;">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center mb-3">
+        <span class="fs-5 fw-bold">Recent Projects</span>
+        <div>
+            <!-- Import Button -->
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+                📂 Import Requests (CSV)
+            </button>
+            <!-- Export Button -->
+            <a href="{{ url_for('admin.export_csv') }}" class="btn btn-outline-success ms-2">📊 Export Report
+                (CSV)</a>
         </div>
     </div>
+
+
+    <!-- Import Modal -->
+    <div class="modal fade" id="importModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">📂 Bulk Import Requests</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ url_for('admin.import_csv') }}" method="POST" enctype="multipart/form-data">
+                    <div class="modal-body text-start">
+                        <p class="small text-muted">Upload a CSV file with columns: <strong>Title, Amount, Site,
+                                Reason</strong></p>
+                        <div class="mb-3">
+                            <input class="form-control" type="file" name="file" accept=".csv" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Upload & Import</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Project Title</th>
+                    <th>Location</th>
+                    <th>Fund Given</th>
+                    <th>Status</th>
+                    <th>Date Approved</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr>
+                    <td class="fw-bold">{{ project.request.project_title }}</td>
+                    <td>{{ project.request.project_site }}</td>
+                    <td class="text-success">₱{{ "{:,.2f}".format(project.given_fund) }}</td>
+                    <td>
+                        <span class="badge bg-{{ 'success' if project.current_status == 'Ongoing' else 'secondary' }}">
+                            {{ project.current_status }}
+                        </span>
+                    </td>
+                    <td>{{ project.approval_date.strftime('%Y-%m-%d') if project.approval_date else 'N/A' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-4">No active projects found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+
 </div>
 {% endblock %}

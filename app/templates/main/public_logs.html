@@ -3,11 +3,14 @@
 {% block content %}
 <div class="container mt-5">
     <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold text-primary">Transparency Logs</h1>
-        <p class="lead text-muted">Public record of system actions, fund allocations, and project updates.</p>
+        <h1 class="display-5 fw-bold" style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.6);">Transparency Logs
+        </h1>
+        <p class="lead" style="color: #f1f5f9; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Public record of system
+            actions, fund allocations, and project updates.</p>
     </div>
 
-    <ul class="nav nav-pills mb-4 justify-content-center" id="logTabs" role="tablist">
+    <ul class="nav nav-pills mb-4 justify-content-center bg-white rounded shadow-sm p-1 d-inline-flex" id="logTabs"
+        role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="funds-tab" data-bs-toggle="pill" data-bs-target="#funds" type="button">
                 💰 Fund Requests
@@ -26,7 +29,7 @@
     </ul>
 
     <div class="tab-content" id="logTabsContent">
-        
+
         <div class="tab-pane fade show active" id="funds" role="tabpanel">
             <div class="card shadow-sm border-0">
                 <div class="card-body">
@@ -48,29 +51,30 @@
                                         {{ log.timestamp.strftime('%b %d, %Y') }}<br>
                                         <small>{{ log.timestamp.strftime('%I:%M %p') }}</small>
                                     </td>
-                                    
+
                                     <td>
                                         {% if 'Approve' in log.action_type %}
-                                            <span class="badge bg-success">✅ {{ log.action_type }}</span>
-                                        
+                                        <span class="badge bg-success">✅ {{ log.action_type }}</span>
+
                                         {% elif 'Reject' in log.action_type %}
-                                            <span class="badge bg-danger">❌ {{ log.action_type }}</span>
-                                        
+                                        <span class="badge bg-danger">❌ {{ log.action_type }}</span>
+
                                         {% elif 'Vote' in log.action_type %}
-                                            <span class="badge bg-warning text-dark">🗳️ Vote Cast</span>
-                                        
+                                        <span class="badge bg-warning text-dark">🗳️ Vote Cast</span>
+
                                         {% elif 'Create' in log.action_type %}
-                                            <span class="badge bg-primary">🆕 New Request</span>
-                                        
+                                        <span class="badge bg-primary">🆕 New Request</span>
+
                                         {% else %}
-                                            <span class="badge bg-secondary">{{ log.action_type }}</span>
+                                        <span class="badge bg-secondary">{{ log.action_type }}</span>
                                         {% endif %}
                                     </td>
 
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <img src="{{ url_for('static', filename='profile_pics/' + (log.actor.pic_path if log.actor.pic_path else 'default.png')) }}" 
-                                                 class="rounded-circle me-2" width="30" height="30" style="object-fit: cover;">
+                                            <img src="{{ url_for('static', filename='profile_pics/' + (log.actor.pic_path if log.actor.pic_path else 'default.png')) }}"
+                                                class="rounded-circle me-2" width="30" height="30"
+                                                style="object-fit: cover;">
                                             <div>
                                                 <span class="fw-bold">{{ log.actor.name }}</span><br>
                                                 <small class="text-muted">{{ log.actor.occupation }}</small>
@@ -79,14 +83,17 @@
                                     </td>
 
                                     <td>
-                                        <strong class="text-primary">{{ log.target_change.replace('Request: ', '') }}</strong>
+                                        <strong class="text-primary">{{ log.target_change.replace('Request: ', '')
+                                            }}</strong>
                                         <div class="text-muted small mt-1">
                                             {{ log.details }}
                                         </div>
                                     </td>
                                 </tr>
                                 {% else %}
-                                <tr><td colspan="4" class="text-center text-muted">No funding records found yet.</td></tr>
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">No funding records found yet.</td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -124,8 +131,9 @@
 
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <img src="{{ url_for('static', filename='profile_pics/' + (log.actor.pic_path if log.actor.pic_path else 'default.png')) }}" 
-                                                 class="rounded-circle me-2" width="30" height="30" style="object-fit: cover;">
+                                            <img src="{{ url_for('static', filename='profile_pics/' + (log.actor.pic_path if log.actor.pic_path else 'default.png')) }}"
+                                                class="rounded-circle me-2" width="30" height="30"
+                                                style="object-fit: cover;">
                                             <div>
                                                 <span class="fw-bold">{{ log.actor.name }}</span><br>
                                                 <small class="text-muted">{{ log.actor.occupation }}</small>
@@ -135,32 +143,34 @@
 
                                     <td>
                                         {% set parts = log.details.split('|') %}
-                                        
+
                                         {% if 'Title:' in log.details %}
-                                            <strong>{{ parts[1].replace('Title:', '').strip() }}</strong>
+                                        <strong>{{ parts[1].replace('Title:', '').strip() }}</strong>
                                         {% else %}
-                                            <strong>{{ log.details }}</strong>
+                                        <strong>{{ log.details }}</strong>
                                         {% endif %}
 
                                         {% if 'Desc:' in log.details %}
-                                            <p class="text-muted small mb-0 mt-1">
-                                                {{ parts[2].replace('Desc:', '').strip() }}
-                                            </p>
+                                        <p class="text-muted small mb-0 mt-1">
+                                            {{ parts[2].replace('Desc:', '').strip() }}
+                                        </p>
                                         {% endif %}
                                     </td>
 
                                     <td>
                                         {% if 'Type: Expense' in log.details or 'Expense:' in log.details %}
-                                            <span class="badge bg-success">💰 Expense Update</span>
+                                        <span class="badge bg-success">💰 Expense Update</span>
                                         {% elif 'Type: Site' in log.details %}
-                                            <span class="badge bg-primary">📷 Site Update</span>
+                                        <span class="badge bg-primary">📷 Site Update</span>
                                         {% else %}
-                                            <span class="badge bg-secondary">Update</span>
+                                        <span class="badge bg-secondary">Update</span>
                                         {% endif %}
                                     </td>
                                 </tr>
                                 {% else %}
-                                <tr><td colspan="5" class="text-center text-muted">No project updates posted yet.</td></tr>
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No project updates posted yet.</td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -187,14 +197,14 @@
                                 {% for log in staff_logs %}
                                 <tr>
                                     <td class="text-nowrap">{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
-                                    
+
                                     <td>
                                         {% if 'Deactivate' in log.action_type or 'Delete' in log.action_type %}
-                                            <span class="badge bg-danger">{{ log.action_type }}</span>
+                                        <span class="badge bg-danger">{{ log.action_type }}</span>
                                         {% elif 'Create' in log.action_type or 'Register' in log.action_type %}
-                                            <span class="badge bg-success">{{ log.action_type }}</span>
+                                        <span class="badge bg-success">{{ log.action_type }}</span>
                                         {% else %}
-                                            <span class="badge bg-secondary">{{ log.action_type }}</span>
+                                        <span class="badge bg-secondary">{{ log.action_type }}</span>
                                         {% endif %}
                                     </td>
 
@@ -202,16 +212,18 @@
                                         {{ log.actor.name }}<br>
                                         <small class="text-muted">({{ log.actor.role }})</small>
                                     </td>
-                                    
+
                                     <td>
                                         {% if log.target_change %}
-                                            <div class="fw-bold">{{ log.target_change }}</div>
+                                        <div class="fw-bold">{{ log.target_change }}</div>
                                         {% endif %}
                                         <span class="text-muted small">{{ log.details }}</span>
                                     </td>
                                 </tr>
                                 {% else %}
-                                <tr><td colspan="4" class="text-center text-muted">No staff updates recorded.</td></tr>
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">No staff updates recorded.</td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>

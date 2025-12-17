@@ -21,7 +21,7 @@ def about():
 @main_bp.route('/public-logs')
 def public_logs():
     # 1. Staff Updates (User management)
-    user_actions = ['Create User', 'Delete User', 'Deactivate User', 'Update User', 'Register']
+    user_actions = ['Create User', 'Delete User', 'Deactivate User', 'Update User', 'Register', 'Register Staff', 'Login', 'Logout']
     staff_logs = SystemLog.query.filter(SystemLog.action_type.in_(user_actions))\
                                 .order_by(SystemLog.timestamp.desc()).all()
 
@@ -52,10 +52,14 @@ def public_records():
     # We order by submission date so the newest are first
     all_requests = Request.query.order_by(Request.submission_date.desc()).all()
 
+    # 4. Calculate Total Funds Released (Sum of given_fund for all projects)
+    total_released = db.session.query(db.func.sum(Project.given_fund)).scalar() or 0.0
+
     return render_template('main/public_records.html', 
                            members=members, 
                            projects=projects,
-                           all_requests=all_requests) # <--- Pass this new list
+                           all_requests=all_requests,
+                           total_released=total_released) # <--- Pass this new variable
 
 @main_bp.route('/project/<int:project_id>/history')
 def project_history(project_id):

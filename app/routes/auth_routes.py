@@ -201,6 +201,16 @@ def forgot_password():
 @auth_bp.route('/logout')
 @login_required
 def logout():
+    # Log the Logout
+    log = SystemLog(
+        actor_id=current_user.user_id,
+        action_type='Logout',
+        target_change=f'User: {current_user.username}',
+        details="User logged out"
+    )
+    db.session.add(log)
+    db.session.commit()
+
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))

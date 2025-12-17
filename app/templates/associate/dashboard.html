@@ -2,119 +2,137 @@
 
 {% block content %}
 <div class="container mt-4">
+    <!-- Header Section -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>My Dashboard</h2>
-        <a href="{{ url_for('request.create_request') }}" class="btn btn-primary">+ Create New Request</a>
+        <h2 class="fw-bold" style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.6);">My Dashboard</h2>
+        <a href="{{ url_for('request.create_request') }}" class="btn btn-primary d-flex align-items-center gap-2">
+            <span>+ Create New Request</span>
+        </a>
     </div>
 
-    <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+    <!-- Navigation Pills -->
+    <ul class="nav nav-pills mb-4 bg-white rounded shadow-sm p-1 d-inline-flex" id="myTab" role="tablist">
         <li class="nav-item">
-            <button class="nav-link active" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects" type="button">Active Projects</button>
+            <button class="nav-link active" id="projects-tab" data-bs-toggle="pill" data-bs-target="#projects"
+                type="button">Active Projects</button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requests" type="button">My Requests</button>
+            <button class="nav-link" id="requests-tab" data-bs-toggle="pill" data-bs-target="#requests" type="button">My
+                Requests</button>
         </li>
     </ul>
 
-    <div class="tab-content" id="myTabContent">
-        
-        <div class="tab-pane fade show active" id="projects">
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead class="table-light">
+    <!-- Main Content Glass Card -->
+    <div class="glass-card text-dark"
+        style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: none;">
+        <div class="tab-content" id="myTabContent">
+
+            <div class="tab-pane fade show active" id="projects">
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Project Title</th>
+                                <th>Status</th>
+                                <th>Fund Status</th>
+                                <th>Deadline</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in projects %}
+                            <tr class="{{ 'table-danger' if p.is_overdue else '' }}">
+                                <td>
+                                    <strong>{{ p.request.project_title }}</strong>
+                                    {% if p.is_urgent %}
+                                    <br><span class="badge bg-warning text-dark">⚠️ Ends in {{ p.days_left }}
+                                        days!</span>
+                                    {% endif %}
+                                    {% if p.is_overdue and p.current_status == 'Ongoing' %}
+                                    <br><span class="badge bg-danger">OVERDUE by {{ p.days_left|abs }} days</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <span
+                                        class="badge bg-{{ 'success' if p.current_status == 'Completed' else 'primary' }}">
+                                        {{ p.current_status }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <div style="font-size: 0.9rem;">
+                                        <span class="text-muted">Given:</span> ₱{{ "{:,.2f}".format(p.given_fund) }}<br>
+                                        <span class="text-danger">Spent: (₱{{ "{:,.2f}".format(p.total_expenses)
+                                            }})</span><br>
+                                        <span
+                                            class="fw-bold {{ 'text-danger' if p.remaining_fund < 0 else 'text-success' }}">
+                                            Rem: ₱{{ "{:,.2f}".format(p.remaining_fund) }}
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    {{ p.request.end_date }}
+                                </td>
+
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('associate.post_update', project_id=p.project_id, type='site') }}"
+                                            class="btn btn-sm btn-outline-primary" title="Site Update">
+                                            📷
+                                        </a>
+                                        <a href="{{ url_for('associate.post_update', project_id=p.project_id, type='expense') }}"
+                                            class="btn btn-sm btn-outline-success" title="Report Expense">
+                                            💰
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">No active projects yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="requests">
+                <table class="table align-middle table-hover">
+                    <thead>
                         <tr>
-                            <th>Project Title</th>
+                            <th>Title</th>
+                            <th>Date Submitted</th>
+                            <th>Amount</th>
                             <th>Status</th>
-                            <th>Fund Status</th>
-                            <th>Deadline</th>
-                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for p in projects %}
-                        <tr class="{{ 'table-danger' if p.is_overdue else '' }}">
+                        {% for r in requests %}
+                        <tr>
+                            <td>{{ r.project_title }}</td>
+                            <td>{{ r.submission_date }}</td>
+                            <td>₱{{ "{:,.2f}".format(r.fund_amount) }}</td>
                             <td>
-                                <strong>{{ p.request.project_title }}</strong>
-                                {% if p.is_urgent %}
-                                    <br><span class="badge bg-warning text-dark">⚠️ Ends in {{ p.days_left }} days!</span>
+                                {% if r.status == 'Pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif r.status == 'Approved' %}
+                                <span class="badge bg-success">Approved</span>
+                                {% else %}
+                                <span class="badge bg-danger">Rejected</span>
                                 {% endif %}
-                                {% if p.is_overdue and p.current_status == 'Ongoing' %}
-                                    <br><span class="badge bg-danger">OVERDUE by {{ p.days_left|abs }} days</span>
-                                {% endif %}
-                            </td>
-                            
-                            <td>
-                                <span class="badge bg-{{ 'success' if p.current_status == 'Completed' else 'primary' }}">
-                                    {{ p.current_status }}
-                                </span>
-                            </td>
-                            
-                            <td>
-                                <div style="font-size: 0.9rem;">
-                                    <span class="text-muted">Given:</span> ₱{{ "{:,.2f}".format(p.given_fund) }}<br>
-                                    <span class="text-danger">Spent: (₱{{ "{:,.2f}".format(p.total_expenses) }})</span><br>
-                                    <span class="fw-bold {{ 'text-danger' if p.remaining_fund < 0 else 'text-success' }}">
-                                        Rem: ₱{{ "{:,.2f}".format(p.remaining_fund) }}
-                                    </span>
-                                </div>
-                            </td>
-
-                            <td>
-                                {{ p.request.end_date }}
-                            </td>
-
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <a href="{{ url_for('associate.post_update', project_id=p.project_id, type='site') }}" 
-                                       class="btn btn-sm btn-outline-primary" title="Site Update">
-                                        📷
-                                    </a>
-                                    <a href="{{ url_for('associate.post_update', project_id=p.project_id, type='expense') }}" 
-                                       class="btn btn-sm btn-outline-success" title="Report Expense">
-                                        💰
-                                    </a>
-                                </div>
                             </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="5" class="text-center">No active projects yet.</td></tr>
+                        <tr>
+                            <td colspan="4" class="text-center">No requests found.</td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-        </div>
-
-        <div class="tab-pane fade" id="requests">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Date Submitted</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for r in requests %}
-                    <tr>
-                        <td>{{ r.project_title }}</td>
-                        <td>{{ r.submission_date }}</td>
-                        <td>₱{{ "{:,.2f}".format(r.fund_amount) }}</td>
-                        <td>
-                            {% if r.status == 'Pending' %}
-                                <span class="badge bg-warning text-dark">Pending</span>
-                            {% elif r.status == 'Approved' %}
-                                <span class="badge bg-success">Approved</span>
-                            {% else %}
-                                <span class="badge bg-danger">Rejected</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="4" class="text-center">No requests found.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
         </div>
     </div>
 </div>

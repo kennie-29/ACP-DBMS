@@ -21,11 +21,27 @@ def dashboard():
     if current_user.role not in ['admin', 'super_admin']:
         return redirect(url_for('main.index'))
 
-    # 1. Analytics
+    # 1. Analytics (SQLAlchemy for basic counts)
     total_projects = Project.query.count()
-    approved_projects = Project.query.filter(Project.current_status != 'Cancelled').count()
     pending_requests = Request.query.filter_by(status='Pending').count()
-    total_funds = db.session.query(db.func.sum(Project.given_fund)).scalar() or 0.0
+    
+    # --- REQUIREMENT: LAMBDA FUNCTIONS & DATA HANDLING ---
+    # Fetch all projects to process in Python
+    all_projects = Project.query.all()
+
+    # Demonstrating 'filter' with lambda: Get projects by status
+    ongoing_campaigns = list(filter(lambda p: p.current_status == 'Ongoing', all_projects))
+    completed_campaigns = list(filter(lambda p: p.current_status == 'Completed', all_projects))
+
+    # Demonstrating 'map' with lambda: Extract funds
+    # Demonstrating 'sum' (could use reduce): Calculate totals
+    ongoing_funds = sum(map(lambda p: p.given_fund, ongoing_campaigns))
+    completed_funds = sum(map(lambda p: p.given_fund, completed_campaigns))
+    
+    # -----------------------------------------------------
+
+    total_funds = ongoing_funds + completed_funds # Or use the SQL Query methods
+    approved_projects = len(ongoing_campaigns) + len(completed_campaigns)
 
     # 2. Recent Projects
     projects = Project.query.join(Request).order_by(Project.approval_date.desc()).limit(5).all()
@@ -35,6 +51,8 @@ def dashboard():
                            approved_projects=approved_projects,
                            pending_requests=pending_requests,
                            total_funds=total_funds,
+                           ongoing_funds=ongoing_funds,       # Added
+                           completed_funds=completed_funds,   # Added
                            projects=projects)
 
 @admin_bp.route('/requests')
@@ -280,6 +298,62 @@ def export_csv():
     response = Response(stream_with_context(generate()), mimetype='text/csv')
     response.headers.set('Content-Disposition', 'attachment', filename='projects_report.csv')
     return response
+
+@admin_bp.route('/import/csv', methods=['POST'])
+@login_required
+def import_csv():
+    if current_user.role not in ['admin', 'super_admin']:
+        return redirect(url_for('main.index'))
+
+    if 'file' not in request.files:
+        flash('No file part', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    file = request.files['file']
+    if file.filename == '':
+        flash('No selected file', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    if file and allowed_file(file.filename):
+        try:
+            # Read CSV file
+            stream = StringIO(file.stream.read().decode("UTF8"), newline=None)
+            csv_input = csv.reader(stream)
+            
+            # Skip Header
+            next(csv_input, None) 
+            
+            count = 0
+            for row in csv_input:
+                # Expected Format: Title, Amount, Site, Reason
+                if len(row) < 4:
+                    continue
+                
+                title = row[0]
+                amount = float(row[1]) if row[1] else 0.0
+                site = row[2]
+                reason = row[3]
+
+                new_req = Request(
+                    requested_by_user_id=current_user.user_id, # Admin imports it, so Admin is requester
+                    project_title=title,
+                    fund_amount=amount,
+                    project_site=site,
+                    reason=reason,
+                    status='Pending',
+                    submission_date=datetime.now()
+                )
+                db.session.add(new_req)
+                count += 1
+            
+            db.session.commit()
+            flash(f'Successfully imported {count} requests from CSV!', 'success')
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error importing CSV: {str(e)}', 'danger')
+
+    return redirect(url_for('admin.dashboard'))
 
 @admin_bp.route('/system-logs')
 @login_required

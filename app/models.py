@@ -51,7 +51,7 @@ class Request(db.Model):
     project_site = db.Column(db.String(50), nullable=False)
     project_partners = db.Column(db.String(50), nullable=False)
     
-    submission_date = db.Column(db.Date, default=datetime.utcnow)
+    submission_date = db.Column(db.DateTime, default=datetime.now) # <--- UPDATED to System Time
     status = db.Column(db.String(20), default='Pending', nullable=False) # 'Pending', 'Approved', 'Rejected'
 
     # Relationships
@@ -76,7 +76,7 @@ class Project(db.Model):
     
     current_status = db.Column(db.String(50), nullable=False)
     given_fund = db.Column(db.Float, nullable=False)
-    approval_date = db.Column(db.Date, nullable=False)
+    approval_date = db.Column(db.DateTime, default=datetime.now) # <--- UPDATED to System Time
 
     updates = db.relationship('ProjectUpdate', backref='project', lazy=True)
 
@@ -93,7 +93,7 @@ class ProjectUpdate(db.Model):
     
     receipt_picture = db.Column(db.String(50))
     site_picture = db.Column(db.String(50))
-    date_posted = db.Column(db.Date, default=datetime.utcnow)
+    date_posted = db.Column(db.DateTime, default=datetime.now) # <--- UPDATED to System Time
 
 class SystemLog(db.Model):
     __tablename__ = 'system_logs'
@@ -104,4 +104,4 @@ class SystemLog(db.Model):
     action_type = db.Column(db.String(50), nullable=False) # e.g., 'Login', 'Vote'
     target_change = db.Column(db.String(50)) # e.g., 'Request #5'
     details = db.Column(db.String(50))
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=datetime.now) # <--- UPDATED to System Time

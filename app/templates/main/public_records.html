@@ -3,208 +3,301 @@
 {% block content %}
 <div class="container mt-5">
     <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold text-primary">Public Records</h1>
-        <p class="lead text-muted">Transparency in our people, our projects, and our decisions.</p>
+        <h1 class="display-5 fw-bold" style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.6);">Public Records
+        </h1>
+        <p class="lead" style="color: #f1f5f9; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Transparency in our people,
+            our projects, and our decisions.</p>
+
+        <div class="glass-card d-inline-block px-4 py-3 mt-2"
+            style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
+            <div class="text-uppercase small fw-bold text-muted mb-1">Total Public Funds Released</div>
+            <h2 class="display-6 fw-bold text-success mb-0">₱{{ "{:,.2f}".format(total_released) }}</h2>
+        </div>
     </div>
 
-    <ul class="nav nav-pills mb-4 justify-content-center" id="recordsTab" role="tablist">
-        <li class="nav-item">
-            <button class="nav-link active" id="members-tab" data-bs-toggle="pill" data-bs-target="#members" type="button">
-                👥 Registered Officials
-            </button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" id="projects-tab" data-bs-toggle="pill" data-bs-target="#projects" type="button">
-                🏗️ Active Projects
-            </button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" id="requests-tab" data-bs-toggle="pill" data-bs-target="#requests" type="button">
-                📜 Fund Requests History
-            </button>
-        </li>
-    </ul>
+    <div class="text-center">
 
-    <div class="tab-content">
-        
-        <div class="tab-pane fade show active" id="members">
-            <div class="row row-cols-1 row-cols-md-3 g-4">
-                {% for member in members %}
-                <div class="col">
-                    <div class="card h-100 shadow-sm border-0 text-center position-relative" 
-                         style="{{ 'opacity: 0.7; background-color: #f8f9fa;' if not member.is_active }}">
-                        
-                        {% if not member.is_active %}
-                        <div class="position-absolute top-0 start-0 m-2">
-                            <span class="badge bg-danger">REMOVED</span>
-                        </div>
-                        {% endif %}
-
-                        <div class="card-body d-flex flex-column align-items-center">
-                            {% set filename = member.pic_path if member.pic_path else 'default.png' %}
-                            <img src="{{ url_for('static', filename='profile_pics/' ~ filename) }}" 
-                                 class="rounded-circle mb-3 shadow-sm"
-                                 style="width: 120px; height: 120px; object-fit: cover; border: 3px solid var(--primary-color); {{ 'filter: grayscale(100%);' if not member.is_active }}">
-                            
-                            <h5 class="card-title fw-bold mb-0">{{ member.name }}</h5>
-                            <span class="badge bg-{{ 'primary' if member.role == 'admin' else 'secondary' }} mb-2">
-                                {{ 'Barangay Official' if member.role == 'admin' else 'Researcher/Staff' }}
-                            </span>
-                            <p class="text-dark fw-bold mb-1">{{ member.occupation }}</p>
-                            <div class="mt-auto pt-3 border-top w-100 {{ 'bg-light' if member.is_active }}">
-                                <small class="text-muted">📍 {{ member.address }}</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% else %}
-                <div class="col-12 text-center text-muted">No registered members found.</div>
-                {% endfor %}
+        <!-- Search & Filter Controls -->
+        <div class="row justify-content-center mb-4 g-2">
+            <div class="col-md-5">
+                <input type="text" id="searchInput" class="form-control shadow-sm"
+                    placeholder="🔍 Search projects, people, or details...">
+            </div>
+            <div class="col-md-3">
+                <select id="statusFilter" class="form-select shadow-sm">
+                    <option value="all">All Statuses</option>
+                    <option value="Ongoing">Ongoing / Approved</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
             </div>
         </div>
 
-       <div class="tab-pane fade" id="projects">
-            <div class="row row-cols-1 row-cols-md-2 g-4">
-                {% for project in projects %}
-                <div class="col">
-                    <div class="card h-100 shadow-sm border-0">
-                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                            <span class="badge bg-{{ 'success' if project.current_status == 'Ongoing' else 'secondary' }}">
-                                {{ project.current_status }}
-                            </span>
-                            <small class="text-muted">ID: #{{ project.project_id }}</small>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title fw-bold">{{ project.request.project_title }}</h5>
-                            <p class="card-text text-muted small">{{ project.request.reason|truncate(100) }}</p>
-                            
-                            <ul class="list-group list-group-flush mb-3">
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span>Fund Allocation:</span>
-                                    <span class="fw-bold text-success">₱{{ "{:,.2f}".format(project.given_fund) }}</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span>Location:</span>
-                                    <span>{{ project.request.project_site }}</span>
-                                </li>
-                                
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span>Date Started:</span>
-                                    <span class="fw-bold">
-                                        {{ project.approval_date.strftime('%b %d, %Y') if project.approval_date else 'N/A' }}
-                                    </span>
-                                </li>
+        <ul class="nav nav-pills mb-4 justify-content-center bg-white rounded shadow-sm p-1 d-inline-flex"
+            id="recordsTab" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="members-tab" data-bs-toggle="pill" data-bs-target="#members"
+                    type="button">
+                    👥 Registered Officials
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="projects-tab" data-bs-toggle="pill" data-bs-target="#projects"
+                    type="button">
+                    🏗️ Active Projects
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="requests-tab" data-bs-toggle="pill" data-bs-target="#requests"
+                    type="button">
+                    📜 Fund Requests History
+                </button>
+            </li>
+        </ul>
 
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span>Target Completion:</span>
-                                    <span class="fw-bold text-muted">
-                                        {{ project.request.end_date.strftime('%b %d, %Y') if project.request.end_date else 'No Deadline' }}
-                                    </span>
-                                </li>
-                            </ul>
+        <div class="tab-content">
 
-                            <div class="d-grid mt-3">
-                                <a href="{{ url_for('main.project_history', project_id=project.project_id) }}#projects" 
-                                   class="btn btn-outline-primary btn-sm fw-bold">
-                                    View Full History & Photos ➜
-                                </a>
+            <div class="tab-pane fade show active" id="members">
+                <div class="row row-cols-1 row-cols-md-3 g-4 filter-container">
+                    {% for member in members %}
+                    <div class="col filter-item" data-status="Active">
+                        <div class="card h-100 shadow-sm border-0 text-center position-relative"
+                            style="{{ 'opacity: 0.7; background-color: #f8f9fa;' if not member.is_active }}">
+
+                            {% if not member.is_active %}
+                            <div class="position-absolute top-0 start-0 m-2">
+                                <span class="badge bg-danger">REMOVED</span>
+                            </div>
+                            {% endif %}
+
+                            <div class="card-body d-flex flex-column align-items-center">
+                                {% set filename = member.pic_path if member.pic_path else 'default.png' %}
+                                <img src="{{ url_for('static', filename='profile_pics/' ~ filename) }}"
+                                    class="rounded-circle mb-3 shadow-sm"
+                                    style="width: 120px; height: 120px; object-fit: cover; border: 3px solid var(--primary-color); {{ 'filter: grayscale(100%);' if not member.is_active }}">
+
+                                <h5 class="card-title fw-bold mb-0">{{ member.name }}</h5>
+                                <span class="badge bg-{{ 'primary' if member.role == 'admin' else 'secondary' }} mb-2">
+                                    {{ 'Barangay Official' if member.role == 'admin' else 'Researcher/Staff' }}
+                                </span>
+                                <p class="text-dark fw-bold mb-1">{{ member.occupation }}</p>
+                                <div class="mt-auto pt-3 border-top w-100 {{ 'bg-light' if member.is_active }}">
+                                    <small class="text-muted">📍 {{ member.address }}</small>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    {% else %}
+                    <div class="col-12 text-center text-muted">No registered members found.</div>
+                    {% endfor %}
                 </div>
-                {% else %}
-                <div class="col-12 text-center text-muted">No active projects to display.</div>
-                {% endfor %}
             </div>
-        </div>
-        <div class="tab-pane fade" id="requests">
-            <div class="row row-cols-1 g-4">
-                {% for req in all_requests %}
-                <div class="col">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-header d-flex justify-content-between align-items-center
+
+            <div class="tab-pane fade" id="projects">
+                <div class="row row-cols-1 row-cols-md-2 g-4 filter-container">
+                    {% for project in projects %}
+                    <div class="col filter-item" data-status="{{ project.current_status }}">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <span
+                                    class="badge bg-{{ 'success' if project.current_status == 'Ongoing' else 'secondary' }}">
+                                    {{ project.current_status }}
+                                </span>
+                                <small class="text-muted">ID: #{{ project.project_id }}</small>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold">{{ project.request.project_title }}</h5>
+                                <p class="card-text text-muted small">{{ project.request.reason|truncate(100) }}</p>
+
+                                <ul class="list-group list-group-flush mb-3">
+                                    <li class="list-group-item d-flex justify-content-between px-0">
+                                        <span>Fund Allocation:</span>
+                                        <span class="fw-bold text-success">₱{{ "{:,.2f}".format(project.given_fund)
+                                            }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between px-0">
+                                        <span>Location:</span>
+                                        <span>{{ project.request.project_site }}</span>
+                                    </li>
+
+                                    <li class="list-group-item d-flex justify-content-between px-0">
+                                        <span>Date Started:</span>
+                                        <span class="fw-bold">
+                                            {{ project.approval_date.strftime('%b %d, %Y') if project.approval_date else
+                                            'N/A' }}
+                                        </span>
+                                    </li>
+
+                                    <li class="list-group-item d-flex justify-content-between px-0">
+                                        <span>Target Completion:</span>
+                                        <span class="fw-bold text-muted">
+                                            {{ project.request.end_date.strftime('%b %d, %Y') if
+                                            project.request.end_date
+                                            else 'No Deadline' }}
+                                        </span>
+                                    </li>
+                                </ul>
+
+                                <div class="d-grid mt-3">
+                                    <a href="{{ url_for('main.project_history', project_id=project.project_id) }}#projects"
+                                        class="btn btn-outline-primary btn-sm fw-bold">
+                                        View Full History & Photos ➜
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12 text-center text-muted">No active projects to display.</div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="tab-pane fade" id="requests">
+                <div class="row row-cols-1 g-4 filter-container">
+                    {% for req in all_requests %}
+                    <div class="col filter-item" data-status="{{ req.status }}">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header d-flex justify-content-between align-items-center
                             {% if req.status == 'Approved' %} bg-success text-white
                             {% elif req.status == 'Rejected' %} bg-danger text-white
                             {% else %} bg-warning text-dark {% endif %}">
-                            
-                            <span class="fw-bold">
-                                {% if req.status == 'Approved' %} APPROVED
-                                {% elif req.status == 'Rejected' %} REJECTED
-                                {% else %} ⏳ PENDING {% endif %}
-                            </span>
-                            <small>Submitted: {{ req.submission_date.strftime('%b %d, %Y') }}</small>
-                        </div>
 
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-7 border-end">
-                                    <h4 class="fw-bold">{{ req.project_title }}</h4>
-                                    <p class="text-muted mb-2">Requested by: <strong>{{ req.requester.name }}</strong></p>
-                                    
-                                    <div class="mb-3">
-                                        <span class="badge bg-secondary p-2">Amount: ₱{{ "{:,.2f}".format(req.fund_amount) }}</span>
-                                        <span class="badge bg-light text-dark border p-2">Site: {{ req.project_site }}</span>
+                                <span class="fw-bold">
+                                    {% if req.status == 'Approved' %} APPROVED
+                                    {% elif req.status == 'Rejected' %} REJECTED
+                                    {% else %} ⏳ PENDING {% endif %}
+                                </span>
+                                <small>Submitted: {{ req.submission_date.strftime('%b %d, %Y') }}</small>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-7 border-end">
+                                        <h4 class="fw-bold">{{ req.project_title }}</h4>
+                                        <p class="text-muted mb-2">Requested by: <strong>{{ req.requester.name
+                                                }}</strong>
+                                        </p>
+
+                                        <div class="mb-3">
+                                            <span class="badge bg-secondary p-2">Amount: ₱{{
+                                                "{:,.2f}".format(req.fund_amount) }}</span>
+                                            <span class="badge bg-light text-dark border p-2">Site: {{ req.project_site
+                                                }}</span>
+                                        </div>
+
+                                        <p class="card-text"><strong>Objective/Reason:</strong><br> {{ req.reason }}</p>
                                     </div>
-                                    
-                                    <p class="card-text"><strong>Objective/Reason:</strong><br> {{ req.reason }}</p>
-                                </div>
 
-                                <div class="col-md-5">
-                                    <h6 class="text-muted fw-bold border-bottom pb-2">Administrative Votes</h6>
-                                    
-                                    {% if req.votes %}
+                                    <div class="col-md-5">
+                                        <h6 class="text-muted fw-bold border-bottom pb-2">Administrative Votes</h6>
+
+                                        {% if req.votes %}
                                         <ul class="list-group list-group-flush">
                                             {% for vote in req.votes %}
-                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                            <li
+                                                class="list-group-item d-flex justify-content-between align-items-center px-0">
                                                 <div>
                                                     <strong>{{ vote.admin.name }}</strong>
                                                     {% if vote.remarks %}
-                                                        <br><small class="text-muted fst-italic">"{{ vote.remarks }}"</small>
+                                                    <br><small class="text-muted fst-italic">"{{ vote.remarks
+                                                        }}"</small>
                                                     {% endif %}
                                                 </div>
-                                                
+
                                                 {% if vote.vote == 'Approve' %}
-                                                    <span class="badge bg-success rounded-pill">Approved</span>
+                                                <span class="badge bg-success rounded-pill">Approved</span>
                                                 {% else %}
-                                                    <span class="badge bg-danger rounded-pill">Rejected</span>
+                                                <span class="badge bg-danger rounded-pill">Rejected</span>
                                                 {% endif %}
                                             </li>
                                             {% endfor %}
                                         </ul>
-                                    {% else %}
+                                        {% else %}
                                         <p class="text-muted small fst-italic mt-2">No votes recorded yet.</p>
-                                    {% endif %}
+                                        {% endif %}
 
-                                    {% if req.status != 'Pending' %}
+                                        {% if req.status != 'Pending' %}
                                         <div class="alert alert-light border mt-3 mb-0 p-2 text-center small">
                                             Final decision made by the captain.
                                         </div>
-                                    {% endif %}
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    {% else %}
+                    <div class="col-12 text-center text-muted">No requests found in the system.</div>
+                    {% endfor %}
                 </div>
-                {% else %}
-                <div class="col-12 text-center text-muted">No requests found in the system.</div>
-                {% endfor %}
             </div>
+
         </div>
-
     </div>
-</div>
-{% endblock %}
+    {% endblock %}
 
-{% block scripts %}
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        if (window.location.hash) {
-            var triggerEl = document.querySelector(window.location.hash + '-tab');
-            if (triggerEl) {
-                var tab = new bootstrap.Tab(triggerEl);
-                tab.show();
+    {% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Tab Persistence
+            if (window.location.hash) {
+                var triggerEl = document.querySelector(window.location.hash + '-tab');
+                if (triggerEl) {
+                    var tab = new bootstrap.Tab(triggerEl);
+                    tab.show();
+                }
             }
-        }
-    });
-</script>
-{% endblock %}
+
+            // --- FILTER LOGIC ---
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            const items = document.querySelectorAll('.filter-item');
+
+            function filterItems() {
+                const term = searchInput.value.toLowerCase();
+                const status = statusFilter.value;
+
+                items.forEach(item => {
+                    const text = item.innerText.toLowerCase();
+                    const itemStatus = item.getAttribute('data-status');
+
+                    // 1. Text Match
+                    const matchesText = text.includes(term);
+
+                    // 2. Status Match
+                    let matchesStatus = false;
+                    if (status === 'all') {
+                        matchesStatus = true;
+                    } else if (status === 'Ongoing' && (itemStatus === 'Ongoing' || itemStatus === 'Approved')) {
+                        matchesStatus = true;
+                    } else {
+                        matchesStatus = itemStatus === status;
+                    }
+
+                    // Special case: Ignore status filter for "Members" tab (assuming they are always active in this view for now logic)
+                    // Or better: If the item doesn't HAVE a status (e.g. member), should it show?
+                    // Members have data-status="Active". 
+                    if (item.classList.contains('col') && item.closest('#members')) {
+                        // For members, only apply search text, ignore status dropdown unless we want to filter removed.
+                        // Let's keep it simple: matchesStatus = true for members if filter is not 'all'.
+                        // Actually better: If filter is set to specific project status (Pending/Rejected), hide members.
+                        if (status !== 'all' && status !== 'Active') {
+                            // If looking for "Pending", hide members.
+                            if (item.closest('#members')) matchesStatus = false;
+                        }
+                    }
+
+                    if (matchesText && matchesStatus) {
+                        item.classList.remove('d-none');
+                    } else {
+                        item.classList.add('d-none');
+                    }
+                });
+            }
+
+            searchInput.addEventListener('keyup', filterItems);
+            statusFilter.addEventListener('change', filterItems);
+        });
+    </script>
+    {% endblock %}
