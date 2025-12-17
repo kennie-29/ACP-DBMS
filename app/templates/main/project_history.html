@@ -88,5 +88,42 @@
         <div class="alert alert-secondary text-center">No updates have been posted for this project yet.</div>
         {% endfor %}
     </div>
+
+    <!-- ANONYMOUS COMMENTS SECTION -->
+    <div class="mt-5 pt-4 border-top">
+        <h4 class="fw-bold mb-4" style="color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">Community Feedback
+            (Anonymous)</h4>
+
+        <!-- Comment Form -->
+        <div class="card shadow-sm border-0 mb-4 glass-card" style="background: rgba(255,255,255,0.9);">
+            <div class="card-body">
+                <form action="{{ url_for('main.post_comment', project_id=project.project_id) }}" method="POST">
+                    <div class="mb-3">
+                        <textarea class="form-control" name="content" rows="3"
+                            placeholder="Share your thoughts on this project..." required></textarea>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary btn-sm">Post Comment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Comments List -->
+        <div class="list-group shadow-sm">
+            {% for comment in project.comments %}
+            <div class="list-group-item p-3 border-0 mb-2 rounded" style="background: rgba(255,255,255,0.95);">
+                <div class="d-flex justify-content-between">
+                    <strong class="text-muted small">Anonymous Citizen</strong>
+                    <small class="text-muted">{{ comment.timestamp.strftime('%b %d, %Y • %I:%M %p') }}</small>
+                </div>
+                <p class="mb-0 mt-2">{{ comment.content }}</p>
+            </div>
+            {% else %}
+            <div class="alert alert-light text-center text-muted">No comments yet. Be the first to share your feedback!
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 {% endblock %}

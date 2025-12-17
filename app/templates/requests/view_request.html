@@ -4,21 +4,22 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            
+
             <div class="mb-3">
-                <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
-                    ← Back to List
+                <a href="javascript:history.back()" class="btn btn-light shadow-sm fw-bold">
+                    <span class="me-2">←</span> Back to List
                 </a>
             </div>
 
             <div class="card shadow-lg border-0">
-                <div class="card-header text-white p-4 d-flex justify-content-between align-items-center
-                    {% if req.status == 'Approved' %} bg-success
-                    {% elif req.status == 'Rejected' %} bg-danger
-                    {% else %} bg-primary {% endif %}">
-                    
+                <div class="card-header p-4 d-flex justify-content-between align-items-center
+                    {% if req.status == 'Approved' %} bg-success text-white
+                    {% elif req.status == 'Rejected' %} bg-danger text-white
+                    {% else %} bg-primary text-white {% endif %}">
+
                     <div>
-                        <h6 class="text-uppercase opacity-75 mb-1">Fund Request Details</h6>
+                        <h6 class="text-white-50 text-uppercase fw-bold mb-1" style="letter-spacing: 1px;">Fund Request
+                            Details</h6>
                         <h2 class="mb-0 fw-bold">{{ req.project_title }}</h2>
                     </div>
                     <div class="text-end">
@@ -58,8 +59,8 @@
                         <div class="col-md-6 mb-3">
                             <label class="fw-bold text-muted small">TIMELINE</label>
                             <p class="fs-5">
-                                {{ req.start_date.strftime('%b %d, %Y') if req.start_date else 'TBD' }} 
-                                <span class="text-muted mx-2">to</span> 
+                                {{ req.start_date.strftime('%b %d, %Y') if req.start_date else 'TBD' }}
+                                <span class="text-muted mx-2">to</span>
                                 {{ req.end_date.strftime('%b %d, %Y') if req.end_date else 'TBD' }}
                             </p>
                         </div>
@@ -78,28 +79,28 @@
 
                     {% if current_user.role in ['admin', 'super_admin'] or req.status != 'Pending' %}
                     <h5 class="fw-bold border-bottom pb-2 mt-5 mb-3">🗳️ Administrative Votes</h5>
-                    
+
                     {% if req.votes %}
-                        <div class="list-group">
+                    <div class="list-group">
                         {% for vote in req.votes %}
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ vote.admin.name }}</strong>
-                                    {% if vote.remarks %}
-                                        <br><span class="text-muted small">"{{ vote.remarks }}"</span>
-                                    {% endif %}
-                                </div>
-                                
-                                {% if vote.vote == 'Approve' %}
-                                    <span class="badge bg-success rounded-pill">Approved</span>
-                                {% else %}
-                                    <span class="badge bg-danger rounded-pill">Rejected</span>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ vote.admin.name }}</strong>
+                                {% if vote.remarks %}
+                                <br><span class="text-muted small">"{{ vote.remarks }}"</span>
                                 {% endif %}
                             </div>
-                        {% endfor %}
+
+                            {% if vote.vote == 'Approve' %}
+                            <span class="badge bg-success rounded-pill">Approved</span>
+                            {% else %}
+                            <span class="badge bg-danger rounded-pill">Rejected</span>
+                            {% endif %}
                         </div>
+                        {% endfor %}
+                    </div>
                     {% else %}
-                        <p class="text-muted fst-italic">No votes recorded yet.</p>
+                    <p class="text-muted fst-italic">No votes recorded yet.</p>
                     {% endif %}
                     {% endif %}
 

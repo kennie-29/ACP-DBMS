@@ -24,7 +24,7 @@ def dashboard():
         return redirect(url_for('admin.dashboard'))
 
     # 1. Fetch My Requests
-    my_requests = Request.query.filter_by(requested_by_user_id=current_user.user_id).all()
+    my_requests = Request.query.filter_by(requested_by_user_id=current_user.user_id).order_by(Request.submission_date.desc()).all()
     
     # 2. Fetch My Active Projects
     my_projects = Project.query.join(Request).filter(Request.requested_by_user_id == current_user.user_id).all()

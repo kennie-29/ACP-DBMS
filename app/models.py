@@ -79,6 +79,7 @@ class Project(db.Model):
     approval_date = db.Column(db.DateTime, default=datetime.now) # <--- UPDATED to System Time
 
     updates = db.relationship('ProjectUpdate', backref='project', lazy=True)
+    comments = db.relationship('ProjectComment', backref='project', lazy=True, order_by="desc(ProjectComment.timestamp)")
 
     @property
     def is_overdue(self):
@@ -112,3 +113,17 @@ class SystemLog(db.Model):
     target_change = db.Column(db.String(50)) # e.g., 'Request #5'
     details = db.Column(db.String(50))
     timestamp = db.Column(db.DateTime, default=datetime.now) # <--- UPDATED to System Time
+
+class ProjectComment(db.Model):
+    __tablename__ = 'project_comments'
+
+    comment_id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.project_id'), nullable=False)
+    
+    content = db.Column(db.String(500), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.now)
+    is_anonymous = db.Column(db.Boolean, default=True)
+
+    # Relationship to project
+    # Note: We can access project.comments if we add a backref to Project, or just query it directly.
+    # Let's add a backref to Project for convenience.

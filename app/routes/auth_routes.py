@@ -1,11 +1,13 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from ..models import User, SystemLog  
 from ..database import db
 import string
 import secrets
 from flask_mail import Message
-from .. import mail  # <--- Import the mail instance we created in __init__.py
+from .. import mail
+import time
+import os
 
 auth_bp = Blueprint('auth', __name__)
 
