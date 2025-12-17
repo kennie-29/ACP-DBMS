@@ -1,5 +1,5 @@
 from .database import db
-from datetime import datetime
+from datetime import datetime, date
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -79,6 +79,13 @@ class Project(db.Model):
     approval_date = db.Column(db.DateTime, default=datetime.now) # <--- UPDATED to System Time
 
     updates = db.relationship('ProjectUpdate', backref='project', lazy=True)
+
+    @property
+    def is_overdue(self):
+        """Returns True if the project is still 'Ongoing' but passed its End Date."""
+        if self.current_status == 'Ongoing' and self.request.end_date:
+            return date.today() > self.request.end_date
+        return False
 
 class ProjectUpdate(db.Model):
     __tablename__ = 'project_updates'

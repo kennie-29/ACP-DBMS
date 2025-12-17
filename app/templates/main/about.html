@@ -1,49 +1,127 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="glass-card" style="text-align: center; max-width: 800px; margin: 0 auto;">
-    <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--primary-color);">About TransparanSee</h1>
-    <p style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 2rem;">
-        Empowering citizens through transparent government fund monitoring.
-    </p>
-
-    <div style="text-align: left; margin-bottom: 3rem;">
-        <h3>Our Mission</h3>
-        <p style="color: var(--text-muted); line-height: 1.6;">
-            To provide a real-time, accessible platform for monitoring barangay project funds, ensuring every peso is
-            accounted for and visibly utilized for the community's development.
+<div class="container mt-5 mb-5">
+    <div class="glass-card" style="text-align: center; max-width: 900px; margin: 0 auto; padding: 3rem;">
+        
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--primary-color); font-weight: bold;">
+            About TransparanSee
+        </h1>
+        <p style="font-size: 1.2rem; color: var(--text-main); margin-bottom: 3rem;">
+            Empowering citizens through transparent government fund monitoring.
         </p>
-    </div>
 
-    <div style="text-align: left;">
-        <h3>The Team</h3>
-        <div
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-top: 1.5rem;">
-            <div style="text-align: center;">
-                <div style="width: 80px; height: 80px; background: #e2e8f0; border-radius: 50%; margin: 0 auto 1rem;">
-                </div>
-                <strong>Group Leader</strong>
-                <div style="font-size: 0.875rem; color: var(--text-muted);">Project Manager</div>
+        <div style="text-align: left; margin-bottom: 3rem;">
+            <h3 style="color: var(--primary-color); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                Rationale
+            </h3>
+            <p style="color: var(--text-muted); line-height: 1.8; font-size: 1.05rem;">
+                TransparanSee addresses challenges in managing government funds, such as delays, inconsistencies, and limited transparency. Traditional methods reliant on manual monitoring and outdated reporting hinder accountability and affect public services. This platform offers a centralized, user-friendly solution for recording transactions, tracking budgets, and generating real-time reports, reducing human errors and recording delays. Driven by transparency and accountability, TransparanSee helps ensure proper fund usage and fosters public trust, ultimately enhancing service delivery and promoting integrity in government operations.
+            </p>
+        </div>
+
+        <div class="row text-start mb-5">
+            <div class="col-md-6 mb-4">
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem;">General Objective</h3>
+                <p style="color: var(--text-muted); line-height: 1.6;">
+                    To develop a web-based system that monitors, reports, and tracks government fund allocation to improve transparency, accountability, and efficiency.
+                </p>
             </div>
-            <div style="text-align: center;">
-                <div style="width: 80px; height: 80px; background: #e2e8f0; border-radius: 50%; margin: 0 auto 1rem;">
-                </div>
-                <strong>Head Programmer</strong>
-                <div style="font-size: 0.875rem; color: var(--text-muted);">Development Lead</div>
-            </div>
-            <div style="text-align: center;">
-                <div style="width: 80px; height: 80px; background: #e2e8f0; border-radius: 50%; margin: 0 auto 1rem;">
-                </div>
-                <strong>UI/UX Designer</strong>
-                <div style="font-size: 0.875rem; color: var(--text-muted);">Design Lead</div>
-            </div>
-            <div style="text-align: center;">
-                <div style="width: 80px; height: 80px; background: #e2e8f0; border-radius: 50%; margin: 0 auto 1rem;">
-                </div>
-                <strong>Research Lead</strong>
-                <div style="font-size: 0.875rem; color: var(--text-muted);">Data Analyst</div>
+            <div class="col-md-6">
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Specific Objectives</h3>
+                <ul style="color: var(--text-muted); line-height: 1.6; list-style-type: none; padding-left: 0;">
+                    <li style="margin-bottom: 0.5rem;">🎯 To create a user-friendly dashboard for viewing fund status and project tracking.</li>
+                    <li style="margin-bottom: 0.5rem;">🎯 To generate a detailed report on funds distribution, usage, and project progress.</li>
+                    <li style="margin-bottom: 0.5rem;">🎯 To ensure secure web access and data management, protecting sensitive information and preventing unauthorized access</li>
+                </ul>
             </div>
         </div>
+
+        <div style="text-align: left; margin-bottom: 4rem;">
+            <h3 style="color: var(--primary-color); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                Target SDGs
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                <div style="background: #24a822; color: white; padding: 1.5rem; border-radius: 12px; text-align: center;">
+                    <h1 style="font-weight: bold; opacity: 0.3;">16</h1>
+                    <h5 style="font-weight: bold;">Peace, Justice & Strong Institutions</h5>
+                    <p style="font-size: 0.8rem; opacity: 0.9;">Promoting accountable and inclusive societies.</p>
+                </div>
+                
+                <div style="background: #fd9d24; color: white; padding: 1.5rem; border-radius: 12px; text-align: center;">
+                    <h1 style="font-weight: bold; opacity: 0.3;">11</h1>
+                    <h5 style="font-weight: bold;">Sustainable Cities & Communities</h5>
+                    <p style="font-size: 0.8rem; opacity: 0.9;">Making settlements inclusive and safe.</p>
+                </div>
+
+                <div style="background: #cfcfcf; color: #333; padding: 1.5rem; border-radius: 12px; text-align: center;">
+                    <h1 style="font-weight: bold; opacity: 0.3;">9</h1>
+                    <h5 style="font-weight: bold;">Industry, Innovation & Infrastructure</h5>
+                    <p style="font-size: 0.8rem; opacity: 0.9;">Promoting sustainable industrialization and innovation.</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: left; margin-bottom: 4rem;">
+            <h3 style="color: var(--primary-color); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                System Modules
+            </h3>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div style="padding: 1.5rem; background: rgba(255,255,255,0.5); border-radius: 10px; border: 1px solid rgba(0,0,0,0.1);">
+                        <h5 class="fw-bold text-primary"> Authentication & User Profile Module</h5>
+                        <p class="text-muted small mb-0">This module manages system security and user identity. It ensures that only authorized personnel can access sensitive features while allowing users to manage their personal information.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div style="padding: 1.5rem; background: rgba(255,255,255,0.5); border-radius: 10px; border: 1px solid rgba(0,0,0,0.1);">
+                        <h5 class="fw-bold text-success"> Fund Request & Proposal Module</h5>
+                        <p class="text-muted small mb-0">This module streamlines the application process for community funding. It replaces manual paperwork with a digital submission system, ensuring all proposals are standardized and recorded.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div style="padding: 1.5rem; background: rgba(255,255,255,0.5); border-radius: 10px; border: 1px solid rgba(0,0,0,0.1);">
+                        <h5 class="fw-bold text-warning">Admin Governance & Voting Module</h5>
+                        <p class="text-muted small mb-0">This module empowers the administration to review and decide on funding requests collectively. It digitizes the decision-making process to ensure fairness and record-keeping</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div style="padding: 1.5rem; background: rgba(255,255,255,0.5); border-radius: 10px; border: 1px solid rgba(0,0,0,0.1);">
+                        <h5 class="fw-bold text-info">Public Transparency & Public Records Module</h5>
+                        <p class="text-muted small mb-0">This module is the "heart" of the system's accountability. It ensures that constituents can see how funds are used and what actions their leaders are taking.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: left;">
+            <h3 style="color: var(--primary-color); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                The Team
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-top: 1.5rem;">
+                <div style="text-align: center;">
+                    <div style="width: 80px; height: 80px; background: #e2e8f0; border-radius: 50%; margin: 0 auto 1rem;"></div>
+                    <strong>Group Leader</strong>
+                    <div style="font-size: 0.875rem; color: var(--text-muted);">Project Manager</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 80px; height: 80px; background: #e2e8f0; border-radius: 50%; margin: 0 auto 1rem;"></div>
+                    <strong>Head Programmer</strong>
+                    <div style="font-size: 0.875rem; color: var(--text-muted);">Development Lead</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 80px; height: 80px; background: #e2e8f0; border-radius: 50%; margin: 0 auto 1rem;"></div>
+                    <strong>UI/UX Designer</strong>
+                    <div style="font-size: 0.875rem; color: var(--text-muted);">Design Lead</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 80px; height: 80px; background: #e2e8f0; border-radius: 50%; margin: 0 auto 1rem;"></div>
+                    <strong>Research Lead</strong>
+                    <div style="font-size: 0.875rem; color: var(--text-muted);">Data Analyst</div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}

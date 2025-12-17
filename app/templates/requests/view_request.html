@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <div class="mb-3">
+                <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                    ← Back to List
+                </a>
+            </div>
+
+            <div class="card shadow-lg border-0">
+                <div class="card-header text-white p-4 d-flex justify-content-between align-items-center
+                    {% if req.status == 'Approved' %} bg-success
+                    {% elif req.status == 'Rejected' %} bg-danger
+                    {% else %} bg-primary {% endif %}">
+                    
+                    <div>
+                        <h6 class="text-uppercase opacity-75 mb-1">Fund Request Details</h6>
+                        <h2 class="mb-0 fw-bold">{{ req.project_title }}</h2>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-white text-dark fs-6 px-3 py-2 rounded-pill">
+                            {{ req.status }}
+                        </span>
+                        <div class="small mt-2 opacity-75">ID: #{{ req.request_id }}</div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded text-center h-100 border">
+                                <small class="text-muted text-uppercase fw-bold">Amount Needed</small>
+                                <h4 class="text-primary fw-bold mb-0">₱{{ "{:,.2f}".format(req.fund_amount) }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded text-center h-100 border">
+                                <small class="text-muted text-uppercase fw-bold">Requested By</small>
+                                <h5 class="mb-0">{{ req.requester.name }}</h5>
+                                <small class="text-muted">{{ req.submission_date.strftime('%b %d, %Y') }}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded text-center h-100 border">
+                                <small class="text-muted text-uppercase fw-bold">Project Site</small>
+                                <h5 class="mb-0">{{ req.project_site }}</h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="opacity-25 my-4">
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold text-muted small">TIMELINE</label>
+                            <p class="fs-5">
+                                {{ req.start_date.strftime('%b %d, %Y') if req.start_date else 'TBD' }} 
+                                <span class="text-muted mx-2">to</span> 
+                                {{ req.end_date.strftime('%b %d, %Y') if req.end_date else 'TBD' }}
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold text-muted small">PROJECT PARTNERS</label>
+                            <p class="fs-5">{{ req.project_partners if req.project_partners else 'None listed' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="fw-bold text-muted small">OBJECTIVE / REASON</label>
+                        <div class="p-3 bg-light rounded border">
+                            {{ req.reason }}
+                        </div>
+                    </div>
+
+                    {% if current_user.role in ['admin', 'super_admin'] or req.status != 'Pending' %}
+                    <h5 class="fw-bold border-bottom pb-2 mt-5 mb-3">🗳️ Administrative Votes</h5>
+                    
+                    {% if req.votes %}
+                        <div class="list-group">
+                        {% for vote in req.votes %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ vote.admin.name }}</strong>
+                                    {% if vote.remarks %}
+                                        <br><span class="text-muted small">"{{ vote.remarks }}"</span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if vote.vote == 'Approve' %}
+                                    <span class="badge bg-success rounded-pill">Approved</span>
+                                {% else %}
+                                    <span class="badge bg-danger rounded-pill">Rejected</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted fst-italic">No votes recorded yet.</p>
+                    {% endif %}
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

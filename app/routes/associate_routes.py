@@ -46,13 +46,14 @@ def dashboard():
         if p.request.end_date:
             days_left = (p.request.end_date - today).days
             p.days_left = days_left
-            p.is_overdue = days_left < 0
+            
+            # REMOVED: p.is_overdue = days_left < 0 
+            # The 'Project' model now handles is_overdue automatically as a @property.
             
             # Mark as 'Urgent' if ending within 7 days and still Ongoing
             p.is_urgent = (0 <= days_left <= 7) and (p.current_status == 'Ongoing')
         else:
             p.days_left = 999 # Safe fallback if no date set
-            p.is_overdue = False
             p.is_urgent = False
 
     return render_template('associate/dashboard.html', requests=my_requests, projects=my_projects)
@@ -98,7 +99,6 @@ def post_update(project_id, type):
                 flash(f'Expense rejected! You only have ₱{remaining_balance:,.2f} remaining.', 'danger')
                 
                 # RE-RENDER TEMPLATE (Do not redirect)
-                # This keeps the typed text and sends 'error_field' to highlight the box red
                 return render_template('associate/post_update.html', 
                                      project=project, 
                                      type=type, 
@@ -153,7 +153,6 @@ def post_update(project_id, type):
         db.session.commit()
         
         # 6. Log the Action (FORMATTED FOR TRANSPARENCY LOGS)
-        # This string format is required for the HTML parser in public_logs.html
         log_details = f"Type: {type.capitalize()} | Title: {title} | Desc: {description}"
         if expenses_amount > 0:
             log_details += f" | Expense: {expenses_amount}"

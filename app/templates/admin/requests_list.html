@@ -2,121 +2,192 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2>Pending Funding Requests</h2>
-    <p class="text-muted">
-        {% if current_user.role == 'super_admin' %}
-            As <strong>Captain</strong>, review officer votes before finalizing.
-        {% else %}
-            As <strong>Officer</strong>, cast your vote to advise the Captain.
-        {% endif %}
-    </p>
 
-    <table class="table table-striped align-middle shadow-sm">
-        <thead class="table-dark">
-            <tr>
-                <th>Project Details</th>
-                <th>Requester</th>
-                <th>Current Tally</th>
-                <th>Your Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for req in requests %}
-            <tr>
-                <td style="width: 35%;">
-                    <h5 class="mb-1">{{ req.project_title }}</h5>
-                    <small class="text-muted">Site: {{ req.project_site }}</small><br>
-                    <small class="text-primary fw-bold">₱{{ "{:,.2f}".format(req.fund_amount) }}</small>
-                    <p class="mt-2 small">{{ req.reason }}</p>
-                </td>
-                
-                <td>{{ req.requester.name }}<br><small class="text-muted">{{ req.requester.role }}</small></td>
-                
-                <td>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-success rounded-pill">👍 {{ req.approve_count }}</span>
-                        <span class="badge bg-danger rounded-pill">👎 {{ req.reject_count }}</span>
-                    </div>
-                    {% if current_user.role == 'super_admin' %}
-                    <a href="#" class="small text-decoration-none mt-1 d-block" data-bs-toggle="modal" data-bs-target="#votesModal{{ req.request_id }}">See Remarks</a>
-                    {% endif %}
-                </td>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.6);">
+                Pending Fund Requests
+            </h2>
+            <p class="text-white-50 mb-0">
+                {% if current_user.role == 'super_admin' %}
+                    Review council votes and make the final decision.
+                {% else %}
+                    Cast your vote to advise the Captain.
+                {% endif %}
+            </p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light btn-sm">
+            ← Back to Dashboard
+        </a>
+    </div>
 
-                <td>
-                    {% if current_user.role == 'super_admin' %}
-                        <div class="d-flex flex-column gap-2">
-                            <form action="{{ url_for('admin.finalize_approval', request_id=req.request_id) }}" method="POST">
-                                <button type="submit" name="action" value="Approve" class="btn btn-success btn-sm w-100">Final Approve</button>
-                            </form>
-                            <form action="{{ url_for('admin.finalize_approval', request_id=req.request_id) }}" method="POST">
-                                <button type="submit" name="action" value="Reject" class="btn btn-outline-danger btn-sm w-100">Final Reject</button>
-                            </form>
-                        </div>
+    <div class="glass-card shadow-lg"
+        style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: none; border-radius: 12px; overflow: hidden;">
+        
+        <div class="card-header bg-white border-bottom py-3 px-4">
+            <span class="fs-5 fw-bold text-warning">
+                <i class="fas fa-hourglass-half me-2"></i>Awaiting Action
+            </span>
+        </div>
 
-                    {% else %}
-                        {% if req.user_voted %}
-                            <span class="badge bg-secondary">You Voted: {{ req.user_voted.vote }}</span>
-                        {% else %}
-                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#voteModal{{ req.request_id }}">
-                                Cast Vote
-                            </button>
-                        {% endif %}
-                    {% endif %}
-                </td>
-            </tr>
-
-            <div class="modal fade" id="voteModal{{ req.request_id }}" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Vote on: {{ req.project_title }}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <form action="{{ url_for('admin.cast_vote', request_id=req.request_id) }}" method="POST">
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label>Remarks / Findings</label>
-                                    <textarea name="remarks" class="form-control" rows="3" required placeholder="e.g., Site visited, costs look accurate."></textarea>
-                                </div>
-                                <div class="d-flex justify-content-center gap-3">
-                                    <button type="submit" name="vote" value="Approve" class="btn btn-success flex-grow-1">Approve</button>
-                                    <button type="submit" name="vote" value="Reject" class="btn btn-danger flex-grow-1">Reject</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal fade" id="votesModal{{ req.request_id }}" tabindex="-1">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Vote Details: {{ req.project_title }}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <h6>Officer Remarks:</h6>
-                            <ul class="list-group">
-                                {% for vote in req.votes %}
-                                <li class="list-group-item">
-                                    <strong>{{ vote.admin.name }}:</strong> 
-                                    <span class="badge bg-{{ 'success' if vote.vote == 'Approve' else 'danger' }}">{{ vote.vote }}</span>
-                                    <br><span class="text-muted small">"{{ vote.remarks }}"</span>
-                                </li>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary text-uppercase small fw-bold">
+                        <tr>
+                            <th class="px-4 py-3">Date</th>
+                            <th class="py-3">Requester</th>
+                            <th class="py-3">Project Title</th>
+                            <th class="py-3">Amount</th>
+                            <th class="py-3 text-center">Council Votes</th>
+                            <th class="py-3 text-end px-4">
+                                {{ 'Decision' if current_user.role == 'super_admin' else 'Actions' }}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requests %}
+                        <tr>
+                            <td class="px-4 text-muted small">
+                                {{ req.submission_date.strftime('%b %d, %Y') }}
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">{{ req.requester.name }}</div>
+                                <small class="text-muted">{{ req.requester.role.capitalize() }}</small>
+                            </td>
+                            <td>
+                                <span class="d-block fw-bold text-primary">{{ req.project_title }}</span>
+                                <small class="text-muted text-truncate d-block" style="max-width: 200px;">
+                                    {{ req.reason }}
+                                </small>
+                            </td>
+                            <td class="fw-bold text-success">
+                                ₱{{ "{:,.2f}".format(req.fund_amount) }}
+                            </td>
+                            
+                            <td class="text-center">
+                                {% if current_user.role == 'super_admin' %}
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <span class="badge bg-success" title="Approvals">
+                                            {{ req.approve_count if req.approve_count else 0 }}
+                                        </span>
+                                        <span class="badge bg-danger" title="Rejections">
+                                            {{ req.reject_count if req.reject_count else 0 }}
+                                        </span>
+                                    </div>
                                 {% else %}
-                                <li class="list-group-item text-center">No votes cast yet.</li>
-                                {% endfor %}
-                            </ul>
+                                    {% set user_voted = false %}
+                                    {% for vote in req.votes %}
+                                        {% if vote.admin_id == current_user.user_id %}
+                                            {% set user_voted = true %}
+                                            {% if vote.vote == 'Approve' %}
+                                                <span class="badge bg-success">You Approved</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">You Rejected</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if not user_voted %}
+                                        <span class="badge bg-secondary opacity-50">Not Voted</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+
+                            <td class="text-end px-4">
+                                <div class="d-flex justify-content-end gap-2">
+                                    
+                                    <a href="{{ url_for('request.view_request', request_id=req.request_id) }}" 
+                                       class="btn btn-info btn-sm text-white shadow-sm"
+                                       title="View Full Details">
+                                        View
+                                    </a>
+
+                                    {% if current_user.role == 'super_admin' %}
+                                        
+                                        <form action="{{ url_for('admin.finalize_approval', request_id=req.request_id) }}" method="POST" class="d-inline">
+                                            <button type="submit" name="action" value="Approve" 
+                                                    class="btn btn-success btn-sm shadow-sm"
+                                                    onclick="return confirm('Are you sure you want to APPROVE this project? It will become Active immediately.')">
+                                                ✔ Accept
+                                            </button>
+                                            <button type="submit" name="action" value="Reject" 
+                                                    class="btn btn-danger btn-sm shadow-sm"
+                                                    onclick="return confirm('Are you sure you want to REJECT this proposal?')">
+                                                ✘ Reject
+                                            </button>
+                                        </form>
+
+                                    {% else %}
+                                        
+                                        {% if not req.user_voted %}
+                                            <button type="button" 
+                                                    class="btn btn-primary btn-sm shadow-sm"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#voteModal{{ req.request_id }}">
+                                                Vote
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-secondary btn-sm disabled" disabled>
+                                                Voted
+                                            </button>
+                                        {% endif %}
+
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fas fa-check-circle fa-3x mb-3 opacity-25"></i>
+                                <p>All caught up! No pending requests.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if current_user.role != 'super_admin' %}
+    {% for req in requests %}
+    <div class="modal fade" id="voteModal{{ req.request_id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold">Cast Your Vote</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('admin.vote_request', request_id=req.request_id) }}" method="POST">
+                    <div class="modal-body text-start">
+                        <p class="mb-3">Voting for: <strong class="text-primary">{{ req.project_title }}</strong></p>
+                        
+                        <div class="alert alert-info small">
+                            <i class="fas fa-info-circle me-1"></i> Your vote helps the Captain decide. It is not final.
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">REMARKS (OPTIONAL)</label>
+                            <textarea name="remarks" class="form-control" rows="3" placeholder="Reason for your vote..."></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="vote" value="Approve" class="btn btn-success py-2 fw-bold">
+                                Vote to Approve
+                            </button>
+                            <button type="submit" name="vote" value="Reject" class="btn btn-danger py-2 fw-bold">
+                                Vote to Reject
+                            </button>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
 
-            {% else %}
-            <tr><td colspan="4" class="text-center">No pending requests.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
 {% endblock %}

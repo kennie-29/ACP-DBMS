@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from flask_login import login_required, current_user
 from datetime import datetime
 from ..utils.decorators import admin_required
-from ..models import Project, Request, User, SystemLog, AdminVote
+from ..models import Project, Request, User, SystemLog, AdminVote # <--- Ensure AdminVote is imported
 from ..database import db
 from sqlalchemy import func
 import csv
@@ -165,49 +165,52 @@ def register_official():
 
     return render_template('admin/register_associate.html')
 
-@admin_bp.route('/requests/<int:request_id>/vote', methods=['POST'])
+@admin_bp.route('/request/<int:request_id>/vote', methods=['POST'])
 @login_required
-def cast_vote(request_id):
+def vote_request(request_id):
+    # 1. Security Check
     if current_user.role not in ['admin', 'super_admin']:
-        return redirect(url_for('main.index'))
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('admin.dashboard'))
 
+    # 2. Get Data
     req = Request.query.get_or_404(request_id)
-    vote_choice = request.form.get('vote') # 'Approve' or 'Reject'
+    vote_value = request.form.get('vote') # 'Approve' or 'Reject'
     remarks = request.form.get('remarks')
-    
-    # 1. Check if user already voted
-    existing_vote = AdminVote.query.filter_by(request_id=req.request_id, admin_id=current_user.user_id).first()
+
+    # 3. Process Vote (Prevent Double Voting)
+    existing_vote = AdminVote.query.filter_by(request_id=request_id, admin_id=current_user.user_id).first()
+
     if existing_vote:
-        flash('You have already voted on this request.', 'warning')
-        return redirect(url_for('admin.requests_list'))
+        existing_vote.vote = vote_value
+        existing_vote.remarks = remarks
+        flash('Your vote has been updated.', 'info')
+    else:
+        new_vote = AdminVote(
+            request_id=req.request_id,
+            admin_id=current_user.user_id,
+            vote=vote_value,
+            remarks=remarks
+        )
+        db.session.add(new_vote)
+        flash('Vote cast successfully!', 'success')
 
-    # 2. Record Vote
-    new_vote = AdminVote(
-        request_id=req.request_id,
-        admin_id=current_user.user_id,
-        vote=vote_choice,
-        remarks=remarks
-    )
-    db.session.add(new_vote)
-
-    # 3. LOG THE VOTE (New Code)
-    # matches 'Vote Cast' in your main_routes.py filters
-    log_details = f"Voted: {vote_choice}"
+    # --- 4. LOGGING THE VOTE (This is the part you requested) ---
+    log_details = f"Voted: {vote_value}"
     if remarks:
         log_details += f" | Remarks: {remarks}"
 
     log = SystemLog(
         actor_id=current_user.user_id,
-        action_type='Vote Cast', 
+        action_type='Council Vote',  # This tag appears in your Audit Trail
         target_change=f'Request: {req.project_title}',
         details=log_details
     )
     db.session.add(log)
+    # -------------------------------------------------------------
 
-    # Commit both the Vote and the Log at the same time
     db.session.commit()
-    
-    flash('Vote cast successfully!', 'success')
+
     return redirect(url_for('admin.requests_list'))
 
 @admin_bp.route('/requests/<int:request_id>/finalize', methods=['POST'])
@@ -406,8 +409,6 @@ def delete_user(user_id):
     flash(f'User {user_to_delete.name} has been deactivated.', 'success')
     return redirect(url_for('main.public_records'))
 
-# In app/routes/admin_routes.py
-
 @admin_bp.route('/register-associate', methods=['GET', 'POST'])
 @login_required
 def register_associate():
@@ -480,3 +481,34 @@ def register_associate():
         return redirect(url_for('admin.dashboard'))
 
     return render_template('admin/register_associate.html')
+
+@admin_bp.route('/project/<int:project_id>/complete', methods=['POST'])
+@login_required
+def complete_project(project_id):
+    # Security Check
+    if current_user.role not in ['admin', 'super_admin']:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    # 1. Get the Project
+    project = Project.query.get_or_404(project_id)
+    
+    # 2. Update Status
+    if project.current_status != 'Completed':
+        project.current_status = 'Completed'
+        
+        # 3. Log the Action
+        log = SystemLog(
+            actor_id=current_user.user_id,
+            action_type='Update Project',
+            target_change=f'Project ID: {project.project_id}',
+            details=f"Marked project '{project.request.project_title}' as Completed."
+        )
+        db.session.add(log)
+        db.session.commit()
+        
+        flash('Project marked as Completed successfully!', 'success')
+    else:
+        flash('Project is already completed.', 'info')
+
+    return redirect(url_for('admin.dashboard'))

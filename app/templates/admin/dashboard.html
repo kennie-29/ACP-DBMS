@@ -8,48 +8,48 @@
         <div>
             {% if current_user.role == 'super_admin' %}
             <a href="{{ url_for('admin.register_official') }}" class="btn btn-light fw-bold shadow-sm">
-                ➕ Register New Member
+                <i class="fas fa-user-plus"></i> Register New Member
             </a>
 
             {% elif current_user.role == 'admin' %}
             <a href="{{ url_for('admin.register_associate') }}" class="btn btn-light fw-bold shadow-sm">
-                ➕ Register New Associate
+                <i class="fas fa-user-plus"></i> Register New Associate
             </a>
             {% endif %}
-
         </div>
     </div>
 
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card text-white bg-primary mb-3 shadow">
+            <div class="card text-white bg-primary mb-3 shadow h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Total Projects</h5>
-                    <p class="card-text fs-3 fw-bold">{{ total_projects }}</p>
+                    <h5 class="card-title opacity-75 text-uppercase small fw-bold">Total Projects</h5>
+                    <p class="card-text fs-2 fw-bold">{{ total_projects }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-success mb-3 shadow">
+            <div class="card text-white bg-success mb-3 shadow h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Approved</h5>
-                    <p class="card-text fs-3 fw-bold">{{ approved_projects }}</p>
+                    <h5 class="card-title opacity-75 text-uppercase small fw-bold">Approved</h5>
+                    <p class="card-text fs-2 fw-bold">{{ approved_projects }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-warning mb-3 shadow">
-                <div class="card-body">
-                    <h5 class="card-title text-dark">Pending Requests</h5>
-                    <p class="card-text fs-3 text-dark fw-bold">{{ pending_requests }}</p>
-
-                    <div class="d-grid gap-2">
+            <div class="card text-dark bg-warning mb-3 shadow h-100">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="card-title opacity-75 text-uppercase small fw-bold">Pending Requests</h5>
+                        <p class="card-text fs-2 fw-bold">{{ pending_requests }}</p>
+                    </div>
+                    <div class="d-grid mt-2">
                         <a href="{{ url_for('admin.requests_list') }}"
                             class="btn btn-sm btn-light text-dark fw-bold shadow-sm">
                             {% if current_user.role == 'super_admin' %}
-                            Process & Finalize
+                            Process & Finalize ➜
                             {% else %}
-                            View & Vote
+                            View & Vote ➜
                             {% endif %}
                         </a>
                     </div>
@@ -57,94 +57,116 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-info mb-3 shadow">
-                <div class="card-body">
-                    <div class="glass-card text-center p-4">
-                        <div class="display-4 fw-bold text-success">₱{{ "{:,.0f}".format(total_funds) }}</div>
-                        <div class="text-uppercase small fw-bold text-muted mt-2">Total Funds Released</div>
+            <div class="card text-white bg-info mb-3 shadow h-100" style="background: linear-gradient(45deg, #0dcaf0, #0aa2c0);">
+                <div class="card-body p-3 d-flex align-items-center justify-content-center">
+                    <div class="text-center">
+                        <div class="display-6 fw-bold text-white">₱{{ "{:,.0f}".format(total_funds) }}</div>
+                        <div class="text-uppercase small fw-bold text-white opacity-75 mt-1">Total Funds Released</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-</div>
-
-<!-- Recent Projects Row -->
-<div class="glass-card text-dark"
-    style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: none;">
-    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center mb-3">
-        <span class="fs-5 fw-bold">Recent Projects</span>
-        <div>
-            <!-- Import Button -->
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
-                📂 Import Requests (CSV)
-            </button>
-            <!-- Export Button -->
-            <a href="{{ url_for('admin.export_csv') }}" class="btn btn-outline-success ms-2">📊 Export Report
-                (CSV)</a>
+    <div class="glass-card text-dark shadow-lg mb-5"
+        style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: none; border-radius: 12px; overflow: hidden;">
+        
+        <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+            <span class="fs-5 fw-bold text-primary"><i class="fas fa-project-diagram me-2"></i>Recent Projects</span>
+            <div>
+                <a href="{{ url_for('admin.export_csv') }}" class="btn btn-success btn-sm text-white">
+                    Export Report
+                </a>
+            </div>
         </div>
-    </div>
 
-
-    <!-- Import Modal -->
-    <div class="modal fade" id="importModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">📂 Bulk Import Requests</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <form action="{{ url_for('admin.import_csv') }}" method="POST" enctype="multipart/form-data">
-                    <div class="modal-body text-start">
-                        <p class="small text-muted">Upload a CSV file with columns: <strong>Title, Amount, Site,
-                                Reason</strong></p>
-                        <div class="mb-3">
-                            <input class="form-control" type="file" name="file" accept=".csv" required>
+        <div class="modal fade" id="importModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Bulk Import Requests</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form action="{{ url_for('admin.import_csv') }}" method="POST" enctype="multipart/form-data">
+                        <div class="modal-body text-start">
+                            <p class="small text-muted">Upload a CSV file with columns: <strong>Title, Amount, Site, Reason</strong></p>
+                            <div class="mb-3">
+                                <input class="form-control" type="file" name="file" accept=".csv" required>
+                            </div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Upload & Import</button>
-                    </div>
-                </form>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Upload & Import</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary text-uppercase small fw-bold">
+                        <tr>
+                            <th class="px-4 py-3">Project Title</th>
+                            <th class="py-3">Site</th>
+                            <th class="py-3">Funds</th>
+                            <th class="py-3">Status</th>
+                            <th class="py-3 text-end px-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in projects %}
+                        <tr>
+                            <td class="px-4 fw-bold text-dark">{{ project.request.project_title }}</td>
+                            <td class="text-muted">{{ project.request.project_site }}</td>
+                            <td class="text-success fw-bold">₱{{ "{:,.2f}".format(project.given_fund) }}</td>
+                            
+                            <td>
+                                {% if project.current_status == 'Completed' %}
+                                    <span class="badge bg-success rounded-pill px-3">Completed</span>
+                                {% elif project.is_overdue %}
+                                    <span class="badge bg-danger rounded-pill px-3">Overdue</span>
+                                    <div class="text-danger x-small fw-bold mt-1" style="font-size: 0.75rem;">
+                                        Due: {{ project.request.end_date.strftime('%Y-%m-%d') }}
+                                    </div>
+                                {% else %}
+                                    <span class="badge bg-primary rounded-pill px-3">Ongoing</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-end px-4">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ url_for('request.view_request', request_id=project.request.request_id) }}" 
+                                       class="btn btn-info btn-sm text-white" 
+                                       title="View Full Details">
+                                       View
+                                    </a>
+
+                                    {% if project.current_status == 'Ongoing' %}
+                                    <form action="{{ url_for('admin.complete_project', project_id=project.project_id) }}" 
+                                          method="POST" 
+                                          onsubmit="return confirm('Are you sure you want to mark this project as COMPLETED?');">
+                                        <button type="submit" class="btn btn-sm btn-success" title="Mark as Completed">
+                                            Done
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                No active projects found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Project Title</th>
-                    <th>Location</th>
-                    <th>Fund Given</th>
-                    <th>Status</th>
-                    <th>Date Approved</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for project in projects %}
-                <tr>
-                    <td class="fw-bold">{{ project.request.project_title }}</td>
-                    <td>{{ project.request.project_site }}</td>
-                    <td class="text-success">₱{{ "{:,.2f}".format(project.given_fund) }}</td>
-                    <td>
-                        <span class="badge bg-{{ 'success' if project.current_status == 'Ongoing' else 'secondary' }}">
-                            {{ project.current_status }}
-                        </span>
-                    </td>
-                    <td>{{ project.approval_date.strftime('%Y-%m-%d') if project.approval_date else 'N/A' }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5" class="text-center py-4">No active projects found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-</div>
 
 </div>
 {% endblock %}

@@ -9,6 +9,16 @@
             actions, fund allocations, and project updates.</p>
     </div>
 
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-6">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-white border-0">🔍</span>
+                <input type="text" id="publicLogSearch" class="form-control border-0 p-3" 
+                       placeholder="Search logs (e.g., 'Council Vote', 'Solar', 'Admin')...">
+            </div>
+        </div>
+    </div>
+
     <ul class="nav nav-pills mb-4 justify-content-center bg-white rounded shadow-sm p-1 d-inline-flex" id="logTabs"
         role="tablist">
         <li class="nav-item" role="presentation">
@@ -44,9 +54,8 @@
                                     <th>Details</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {% for log in fund_logs %}
-                                <tr>
+                            <tbody class="searchable-body"> {% for log in fund_logs %}
+                                <tr class="log-row">
                                     <td class="text-nowrap text-muted">
                                         {{ log.timestamp.strftime('%b %d, %Y') }}<br>
                                         <small>{{ log.timestamp.strftime('%I:%M %p') }}</small>
@@ -59,8 +68,8 @@
                                         {% elif 'Reject' in log.action_type %}
                                         <span class="badge bg-danger">❌ {{ log.action_type }}</span>
 
-                                        {% elif 'Vote' in log.action_type %}
-                                        <span class="badge bg-warning text-dark">🗳️ Vote Cast</span>
+                                        {% elif 'Vote' in log.action_type or 'Council' in log.action_type %}
+                                        <span class="badge bg-info text-dark border">🗳️ Council Vote</span>
 
                                         {% elif 'Create' in log.action_type %}
                                         <span class="badge bg-primary">🆕 New Request</span>
@@ -83,8 +92,7 @@
                                     </td>
 
                                     <td>
-                                        <strong class="text-primary">{{ log.target_change.replace('Request: ', '')
-                                            }}</strong>
+                                        <strong class="text-primary">{{ log.target_change.replace('Request: ', '') }}</strong>
                                         <div class="text-muted small mt-1">
                                             {{ log.details }}
                                         </div>
@@ -117,9 +125,9 @@
                                     <th>Update Type</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="searchable-body">
                                 {% for log in project_logs %}
-                                <tr>
+                                <tr class="log-row">
                                     <td class="text-nowrap text-muted">
                                         {{ log.timestamp.strftime('%b %d, %Y') }}<br>
                                         <small>{{ log.timestamp.strftime('%I:%M %p') }}</small>
@@ -193,9 +201,9 @@
                                     <th>Details (Who & Why)</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="searchable-body">
                                 {% for log in staff_logs %}
-                                <tr>
+                                <tr class="log-row">
                                     <td class="text-nowrap">{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
 
                                     <td>
@@ -234,4 +242,28 @@
 
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById('publicLogSearch');
+        
+        // This targets all rows in all tabs
+        const rows = document.querySelectorAll('.log-row');
+
+        searchInput.addEventListener('keyup', function() {
+            const term = this.value.toLowerCase();
+
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                if (text.includes(term)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

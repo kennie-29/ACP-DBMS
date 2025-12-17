@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for
 from flask_login import current_user
-from ..models import SystemLog, User, Project, Request, ProjectUpdate # <--- Added Project, Request
+from ..models import SystemLog, User, Project, Request, ProjectUpdate
 from ..database import db
 
 main_bp = Blueprint('main', __name__)
@@ -25,14 +25,16 @@ def public_logs():
     staff_logs = SystemLog.query.filter(SystemLog.action_type.in_(user_actions))\
                                 .order_by(SystemLog.timestamp.desc()).all()
 
-    # 2. Fund & Request Updates (THIS IS THE IMPORTANT PART)
-    # We include all the specific actions we added to the logs
-    fund_actions = ['Create Request', 'Vote Cast', 'Approve Request', 'Reject Request', 'Finalize Request']
+    # 2. Fund & Request Updates (THIS IS THE FIX)
+    # Added 'Council Vote' so your votes appear in the public log
+    fund_actions = ['Create Request', 'Vote Cast', 'Council Vote', 'Approve Request', 'Reject Request', 'Finalize Request']
     fund_logs = SystemLog.query.filter(SystemLog.action_type.in_(fund_actions))\
                                .order_by(SystemLog.timestamp.desc()).all()
 
     # 3. Project Updates (Site & Expenses)
-    project_logs = SystemLog.query.filter_by(action_type='Project Update')\
+    # Checking for both 'Update Project' and 'Project Update' to be safe
+    project_actions = ['Update Project', 'Project Update']
+    project_logs = SystemLog.query.filter(SystemLog.action_type.in_(project_actions))\
                                   .order_by(SystemLog.timestamp.desc()).all()
 
     return render_template('main/public_logs.html', 
@@ -59,7 +61,7 @@ def public_records():
                            members=members, 
                            projects=projects,
                            all_requests=all_requests,
-                           total_released=total_released) # <--- Pass this new variable
+                           total_released=total_released)
 
 @main_bp.route('/project/<int:project_id>/history')
 def project_history(project_id):
